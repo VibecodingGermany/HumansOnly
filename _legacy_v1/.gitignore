@@ -1,0 +1,108 @@
+# ==========================================
+# Humans Only - .gitignore
+# Weil manche Dinge einfach privat bleiben sollten
+# (Wie deine Passwörter. Und deine Tanzvideos.)
+# ==========================================
+
+# ============ DEPENDENCIES ============
+# Diese node_modules wiegen mehr als mein erstes Auto
+node_modules/
+.pnp
+.pnp.js
+
+# ============ BUILD OUTPUT ============
+# Was in Vegas passiert, bleibt in Vegas
+# Was beim Build passiert, bleibt lokal
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# ============ ENVIRONMENT ============
+# Secrets gehören nicht auf GitHub
+# Das hat schon bei WikiLeaks nicht gut funktioniert
+.env
+.env_new_Server
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+
+# Aber das Example darf rein
+!.env.example
+
+# ============ LOGS ============
+# Niemand will deine Logs sehen
+# Wirklich. Niemand.
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+logs/
+
+# ============ OS GENERATED ============
+# macOS: "Lass mich dir .DS_Store erklären..."
+# Git: "Nein."
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============ EDITOR/IDE ============
+# Deine IDE-Einstellungen sind wie deine Zahnbürste:
+# Jeder hat seine eigene, niemand will die der anderen
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ============ TESTING ============
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+# ============ MISC ============
+# Zertifikate, PEM-Dateien, und andere
+# "Das sollte eigentlich nicht hier sein"-Dateien
+*.pem
+*.key
+*.crt
+
+# Temporäre Dateien
+*.tmp
+*.temp
+.cache/
+
+# ============ PRISMA ============
+# Generierte Prisma Client Dateien
+# (werden beim npm install neu generiert)
+# app/src/prisma/generated/ - Normalerweise ignoriert, hier behalten wir es
+
+# ============ SCREENSHOTS ============
+# Agent-Screenshots (lokale Tests)
+screenshots/
+*.screenshot.png
+
+# ============ VERCEL ============
+.vercel
+
+# ============ TURBO ============
+.turbo
+
+# ==========================================
+# Letzte Worte der Weisheit:
+# "Git add -A" ohne .gitignore ist wie
+# "Reply All" bei einer Firmen-E-Mail.
+# Man lernt es nur einmal auf die harte Tour.
+# ==========================================

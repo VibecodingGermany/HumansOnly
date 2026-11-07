@@ -106,3 +106,11 @@ screenshots/
 # "Reply All" bei einer Firmen-E-Mail.
 # Man lernt es nur einmal auf die harte Tour.
 # ==========================================
+
+# v2 local validation artifacts and HTTPS development certificates
+output/
+.playwright-cli/
+app/certificates/
+
+# Preserve this historical report locally; it contains credential-like literals.
+/_legacy_v1/Agents/BUILDER_deployment-report.md
