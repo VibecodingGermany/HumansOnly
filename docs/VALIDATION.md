@@ -1,5 +1,13 @@
 # Validierung — Humans Only 2.0
 
+## Callback-Regression 2026-11-07
+
+Der Benutzer bestätigt den Empfang der Anmeldemail. Supabase protokolliert den erfolgreichen PKCE-Codeaustausch; die anschließende Weiterleitung führt jedoch zu `https://localhost:3218/onboarding`. Auch der Aufruf ohne Code ist auf beiden öffentlichen Domains reproduzierbar betroffen: HTTP 307 mit `Location: https://localhost:3218/invite?auth_error=1`.
+
+Ursache ist die Ableitung des Redirect-Ziels aus `request.url`, dessen Origin hinter dem Reverse-Proxy die interne Serveradresse enthält. Die Korrektur verwendet feste relative Ziele für Erfolgs- und Fehlerfall, behält HTTP 307 und den vorhandenen Session-/Cookie-Austausch bei und setzt `Cache-Control: private, no-store`. Es werden keine Host-Header oder frei wählbaren Rücksprungziele vertraut.
+
+Fünf neue Regressionstests prüfen den erfolgreichen Austausch bei interner Origin, abgelaufene Codes, fehlende/leere Codes, Demo-Modus sowie manipulierte Host-/Forwarded-Header und `next`-Parameter. `npm test` (15/15), `npm run typecheck`, `npm run lint` und `git diff --check` sind erfolgreich. Lokale Prüfungen: 15/15 Tests (davon fünf Callback-Regressionen), Typecheck, Lint und Produktionsbuild erfolgreich. Die öffentliche Abnahme wird im Deploymentprotokoll dieses Fixes festgehalten. Release-Auswirkung: **patch**; keine Versionsänderung ohne separaten Release-Auftrag.
+
 ## Live-Deployment 2026-11-07
 
 Release v2.0.0 / `2a62c42270a7132ecac630f61cf8934f5ff79f1f` wurde auf dem bestehenden Server aktiviert. Beide öffentlichen Domains liefern die neue App über HTTPS. Der Produktionsbuild verwendet das tatsächliche dedizierte Supabase-Projekt, keinen Demo-Modus. Der folgende historische lokale Abnahmebericht bleibt unverändert als Nachweis erhalten.
