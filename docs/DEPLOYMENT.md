@@ -32,7 +32,7 @@ npm run build
 npm start
 ```
 
-Hinter eigenem HTTPS-Reverse-Proxy betreiben. `npm start` verwendet den vollständigen Build im Checkout einschließlich `public/` und `.next/`. Keine Legacy-Clerk-/Prisma-Startskripte starten.
+Hinter eigenem HTTPS-Reverse-Proxy betreiben. Der Auth-Callback antwortet mit festen relativen `Location`-Pfaden (`/onboarding` bzw. `/invite?auth_error=1`), damit der Browser auf seiner öffentlichen Domain bleibt. Interne Request-Hosts und weitergereichte Host-Header bestimmen diese Ziele nicht. `npm start` verwendet den vollständigen Build im Checkout einschließlich `public/` und `.next/`. Keine Legacy-Clerk-/Prisma-Startskripte starten.
 
 Manifest, Icons und Service Worker werden unter `/` bereitgestellt. `/sw.js` darf nicht langfristig gecacht werden; dafür sind Header gesetzt. Authentifizierte Seiten erhalten im Supabase-Modus `Cache-Control: private, no-store`. Der Service Worker cached nur `/offline.html`, keine App-Seiten, Supabase-Responses oder privaten Medien.
 
