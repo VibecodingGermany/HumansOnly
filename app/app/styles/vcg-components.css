@@ -1,0 +1,396 @@
+/* Vibecoding Germany – Komponenten (Port von docs/brand/bundle.css, Klassen-API unverändert).
+   Lädt nach vcg-tokens.css. Alle Werte kommen aus Tokens. Keine Hex-Farben:
+   feste Schwarz/Weiß-Werte der Vorlage (Play-Button, Podcast-Cover) sind auf --on-mango (schwarz)
+   bzw. --on-blue (weiß) gemappt, beide sind themeunabhängig. */
+
+/* Vibecoding Germany – Komponenten (CSS, klassenbasiert, Präfix vcg-)
+   Lädt nach tokens.css. Alle Werte kommen aus Tokens: Farbe var(--ink), Abstand var(--space-4), Schrift var(--font-head). */
+
+/* ---------- Basis ---------- */
+.vcg-root, .vcg-root body { background: var(--surface); color: var(--ink); }
+.vcg-root { font-family: var(--font-sans); font-size: 17px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+.vcg-root *, .vcg-root *::before, .vcg-root *::after { box-sizing: border-box; }
+[data-theme] { background-color: var(--surface); color: var(--ink); }
+.vcg-root :focus-visible, .vcg-focus:focus-visible { outline: var(--stroke-3) solid var(--focus); outline-offset: 3px; }
+.vcg-upper { text-transform: uppercase; }
+
+/* ---------- Rough edges (geklebt / gerissen) ---------- */
+.vcg-rough { clip-path: polygon(0 6%, 4% 0, 31% 4%, 58% 0, 86% 3%, 100% 0, 98% 38%, 100% 72%, 99% 100%, 72% 96%, 44% 100%, 17% 97%, 0 100%, 2% 62%, 0 30%); }
+.vcg-rough-2 { clip-path: polygon(2% 0, 26% 3%, 52% 0, 79% 4%, 100% 1%, 100% 36%, 98% 68%, 100% 100%, 77% 97%, 49% 100%, 21% 96%, 0 99%, 1% 66%, 0 34%); }
+
+/* ---------- Logo (typografische Wortmarke) ---------- */
+.vcg-logo { display: inline-block; font-family: var(--font-display); font-weight: 400; text-transform: uppercase;
+  font-size: 44px; line-height: 0.86; letter-spacing: -0.005em; color: var(--ink); text-decoration: none; }
+.vcg-logo span { display: block; }
+.vcg-logo--outline { color: transparent; -webkit-text-stroke: 1.5px var(--ink); }
+.vcg-logo--inline span { display: inline; }
+
+/* ---------- Button ---------- */
+.vcg-btn { display: inline-flex; align-items: center; gap: var(--space-2); font-family: var(--font-head); font-weight: 700;
+  font-size: 19px; line-height: 1; padding: 14px var(--space-5) 13px; border: var(--stroke-2) solid var(--ink);
+  border-radius: var(--radius-0); background: var(--ink); color: var(--ink-inverse); text-decoration: none; cursor: pointer;
+  transition: background-color .15s, border-color .15s, color .15s, transform .15s; }
+.vcg-btn:hover { background: var(--blue); border-color: var(--blue); color: var(--on-blue); transform: rotate(var(--tilt-s)); }
+.vcg-btn:active { transform: translateY(1px); }
+.vcg-btn:focus-visible { outline: var(--stroke-3) solid var(--focus); outline-offset: 3px; }
+.vcg-btn--sm { font-size: 18px; padding: 11px 20px 10px; }
+.vcg-btn--lg { font-size: 22px; padding: 18px 28px 17px; }
+.vcg-btn--blue { background: var(--blue); border-color: var(--blue); color: var(--on-blue); }
+.vcg-btn--blue:hover { background: var(--ink); border-color: var(--ink); color: var(--ink-inverse); }
+.vcg-btn--mango { background: var(--mango); border-color: var(--ink); color: var(--on-mango); }
+.vcg-btn--mango:hover { background: var(--ink); color: var(--ink-inverse); }
+.vcg-btn[disabled], .vcg-btn[aria-disabled="true"] { opacity: .45; cursor: not-allowed; transform: none; }
+/* Ergänzung Web: Preflight-Guard. Tailwind setzt `button, [type='button'], [type='submit'] { background-color: transparent }`
+   mit gleicher Spezifität (0,1,0) und später in der Kaskade. Echte <button> brauchen deshalb Element + Klasse (0,1,1).
+   Hover-Regeln (0,2,0) gewinnen weiterhin. */
+button.vcg-btn { background-color: var(--ink); }
+button.vcg-btn--blue { background-color: var(--blue); }
+button.vcg-btn--mango { background-color: var(--mango); }
+
+/* Textlink mit Pfeil */
+.vcg-link { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-sans); font-weight: 500; font-size: 17px;
+  color: var(--ink); text-decoration: underline; text-decoration-thickness: var(--stroke-1); text-underline-offset: 5px; cursor: pointer; }
+.vcg-link .vcg-arrow { transition: transform .15s; }
+.vcg-link:hover .vcg-arrow { transform: translateX(4px); }
+.vcg-arrow { width: 22px; height: 22px; flex: none; }
+
+/* ---------- Label ---------- */
+.vcg-label { display: inline-block; font-family: var(--font-head); font-weight: 700; font-size: 15px; line-height: 1;
+  letter-spacing: .04em; text-transform: uppercase; padding: 7px var(--space-3) 6px; background: var(--ink); color: var(--ink-inverse);
+  border-radius: var(--radius-0); white-space: nowrap; }
+.vcg-label--blue { background: var(--blue); color: var(--on-blue); }
+.vcg-label--mango { background: var(--mango); color: var(--on-mango); }
+.vcg-label--outline { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 var(--stroke-2) var(--ink); }
+.vcg-label--lg { font-size: 18px; padding: 8px 14px 7px; }
+
+/* ---------- Sticker ---------- */
+.vcg-sticker { display: inline-block; position: relative; font-family: var(--font-hand); font-weight: 700; font-size: 34px; line-height: 1.05;
+  padding: 10px 22px 6px; transform: rotate(var(--tilt-s)); background: var(--surface-raised); color: var(--ink);
+  filter: drop-shadow(0 2px 0 rgba(10,10,10,.08)) drop-shadow(0 6px 8px rgba(10,10,10,.14)); }
+.vcg-sticker > span { display: block; }
+.vcg-sticker--blue { background: var(--blue); color: var(--on-blue); }
+.vcg-sticker--mango { background: var(--mango); color: var(--on-mango); }
+.vcg-sticker--ink { background: var(--ink); color: var(--ink-inverse); }
+.vcg-sticker--head { font-family: var(--font-head); font-weight: 800; text-transform: uppercase; font-size: 30px; line-height: .95; letter-spacing: -.005em; }
+.vcg-sticker--m { font-size: 24px; padding: 8px 16px 4px; }
+.vcg-sticker--s { font-size: 18px; padding: 6px 12px 3px; }
+.vcg-sticker--tilt-m { transform: rotate(var(--tilt-m)); }
+.vcg-sticker--flat { transform: none; }
+
+/* ---------- Highlight (blauer Balken hinter Display-Wort) ---------- */
+.vcg-highlight { display: inline-block; background: var(--blue); color: var(--on-blue); padding: .06em .1em 0 .08em; margin-left: .04em;
+  transform: rotate(-1deg);
+  clip-path: polygon(0 3%, 6% 0, 40% 2%, 70% 0, 100% 1%, 99% 30%, 100% 64%, 98% 100%, 60% 98%, 28% 100%, 1% 98%, 0 60%); }
+.vcg-highlight--mango { background: var(--mango); color: var(--on-mango); }
+.vcg-highlight--ink { background: var(--ink); color: var(--ink-inverse); }
+
+/* ---------- Display-Satz ---------- */
+.vcg-display { font-family: var(--font-display); font-weight: 400; text-transform: uppercase; margin: 0; color: var(--ink);
+  font-size: clamp(64px, 10.5vw, 150px); line-height: .88; letter-spacing: -.01em; }
+.vcg-display .vcg-line { display: block; white-space: nowrap; }
+.vcg-display--l { font-size: clamp(56px, 8vw, 112px); line-height: .88; }
+.vcg-display--m { font-size: clamp(44px, 6vw, 72px); line-height: .9; }
+.vcg-display--s { font-size: 48px; line-height: .95; }
+.vcg-display .vcg-mango-text { color: var(--mango); }
+/* Ergänzung Web (DS Schriftskala): Umlaut in Zeile 2+ braucht Luft, sonst verschwinden die Punkte in Zeile 1 (wirkt wie line-height .95). */
+.vcg-display .vcg-line--umlaut { padding-top: .08em; }
+/* Highlight schneidet per clip-path an seiner Oberkante ab; Umlaut-Punkte brauchen Platz im Balken. */
+.vcg-display .vcg-line--umlaut .vcg-highlight { padding-top: .17em; }
+
+/* ---------- Sprechblase ---------- */
+.vcg-bubble { position: relative; isolation: isolate; display: inline-grid; place-items: center; text-align: center; min-width: 200px; min-height: 140px;
+  padding: 22px 36px 30px 30px; color: var(--ink); font-family: var(--font-hand); font-weight: 700; font-size: 24px; line-height: 1.05; }
+.vcg-bubble__shape { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; overflow: visible; }
+.vcg-bubble__shape path { fill: var(--surface-raised); stroke: var(--ink); stroke-width: 3; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.vcg-bubble--left { padding: 22px 30px 30px 36px; }
+.vcg-bubble--left .vcg-bubble__shape { transform: scaleX(-1); }
+
+/* ---------- Starburst ---------- */
+.vcg-burst { display: inline-grid; place-items: center; width: 140px; aspect-ratio: 1; background: var(--blue); color: var(--on-blue);
+  clip-path: polygon(50.0% 0.0%, 57.8% 10.8%, 69.1% 3.8%, 72.2% 16.7%, 85.4% 14.6%, 83.3% 27.8%, 96.2% 30.9%, 89.2% 42.2%, 100.0% 50.0%, 89.2% 57.8%, 96.2% 69.1%, 83.3% 72.2%, 85.4% 85.4%, 72.2% 83.3%, 69.1% 96.2%, 57.8% 89.2%, 50.0% 100.0%, 42.2% 89.2%, 30.9% 96.2%, 27.8% 83.3%, 14.6% 85.4%, 16.7% 72.2%, 3.8% 69.1%, 10.8% 57.8%, 0.0% 50.0%, 10.8% 42.2%, 3.8% 30.9%, 16.7% 27.8%, 14.6% 14.6%, 27.8% 16.7%, 30.9% 3.8%, 42.2% 10.8%); }
+.vcg-burst > span { font-family: var(--font-head); font-weight: 800; text-transform: uppercase; text-align: center; font-size: 26px; line-height: .92;
+  transform: rotate(var(--tilt-l)); }
+.vcg-burst--mango { background: var(--mango); color: var(--on-mango); }
+.vcg-burst--spiky { clip-path: polygon(50.0% 0.0%, 57.8% 21.0%, 75.0% 6.7%, 71.2% 28.8%, 93.3% 25.0%, 79.0% 42.2%, 100.0% 50.0%, 79.0% 57.8%, 93.3% 75.0%, 71.2% 71.2%, 75.0% 93.3%, 57.8% 79.0%, 50.0% 100.0%, 42.2% 79.0%, 25.0% 93.3%, 28.8% 71.2%, 6.7% 75.0%, 21.0% 57.8%, 0.0% 50.0%, 21.0% 42.2%, 6.7% 25.0%, 28.8% 28.8%, 25.0% 6.7%, 42.2% 21.0%); }
+.vcg-halftone { background-image: radial-gradient(var(--mango-deep) 1.4px, transparent 1.6px); background-size: 8px 8px; }
+
+/* ---------- Play-Button ---------- */
+.vcg-play { display: inline-grid; place-items: center; width: 132px; aspect-ratio: 1; border-radius: var(--radius-full); border: 0; cursor: pointer;
+  background: var(--mango-deep); box-shadow: inset 0 0 0 7px var(--mango-deep), inset 0 0 0 12px var(--on-blue); transition: transform .15s; }
+.vcg-play svg { width: 42%; height: 42%; margin-left: 8%; }
+.vcg-play svg path { fill: var(--on-blue); }
+.vcg-play:hover { transform: scale(1.05) rotate(var(--tilt-s)); }
+.vcg-play:focus-visible { outline: var(--stroke-3) solid var(--focus); outline-offset: 4px; }
+.vcg-play--sm { width: 72px; box-shadow: inset 0 0 0 4px var(--mango-deep), inset 0 0 0 7px var(--on-blue); }
+button.vcg-play { background-color: var(--mango-deep); } /* Ergänzung Web: Preflight-Guard, siehe Button */
+
+/* ---------- Header / Navigation ---------- */
+.vcg-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); padding: var(--space-5) var(--space-7);
+  border-bottom: var(--stroke-2) solid var(--line); background: var(--surface); position: relative; }
+.vcg-nav { display: flex; gap: 52px; }
+.vcg-nav a { font-family: var(--font-head); font-weight: 600; font-size: 22px; line-height: 1; color: var(--ink); text-decoration: none;
+  padding: 6px 0; border-bottom: 3px solid transparent; }
+.vcg-nav a:hover, .vcg-nav a[aria-current="page"] { border-bottom-color: var(--blue); }
+.vcg-header__cta { position: relative; }
+.vcg-header__cta .vcg-doodle { position: absolute; right: -26px; top: -24px; width: 34px; }
+@media (max-width: 860px) { .vcg-nav { display: none; } .vcg-header { padding: var(--space-4); } }
+
+/* ---------- Hero ---------- */
+.vcg-hero { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); gap: var(--space-6); align-items: center;
+  padding: var(--space-7) var(--space-7) var(--space-6); }
+.vcg-hero__lead { font-size: 20px; line-height: 1.45; max-width: 30em; margin: var(--space-5) 0 var(--space-5) 8px; }
+.vcg-hero__ctas { display: flex; align-items: center; gap: var(--space-6); margin-left: 8px; position: relative; }
+.vcg-hero__art { position: relative; min-height: 420px; }
+@media (max-width: 860px) { .vcg-hero { grid-template-columns: 1fr; padding: var(--space-5) var(--space-4); } }
+
+/* ---------- Podcast-Panel ---------- */
+.vcg-panel { display: grid; grid-template-columns: 280px minmax(0, 1fr) auto; gap: var(--space-6); align-items: center; position: relative;
+  background: var(--blue); color: var(--on-blue); border-radius: var(--radius-lg); padding: var(--space-6); }
+.vcg-panel__title { font-family: var(--font-head); font-weight: 700; font-size: 48px; line-height: 1; margin: var(--space-4) 0 var(--space-4); }
+.vcg-panel__text { font-size: 19px; line-height: 1.45; margin: 0 0 var(--space-5); max-width: 36em; }
+.vcg-panel__aside { display: grid; justify-items: center; gap: var(--space-4); padding-right: var(--space-4); }
+.vcg-panel .vcg-meta { color: var(--on-blue); }
+@media (max-width: 860px) { .vcg-panel { grid-template-columns: 1fr; } .vcg-panel__title { font-size: 34px; } }
+
+/* Podcast-Cover (Platzhalter bis zum finalen Artwork) */
+.vcg-podcover { position: relative; aspect-ratio: 1; background: var(--on-mango); border: 3px solid var(--on-blue); border-radius: var(--radius-sm); overflow: hidden;
+  display: flex; flex-direction: column; justify-content: space-between; padding: 14px 16px; color: var(--on-blue); }
+.vcg-podcover__title { font-family: var(--font-head); font-weight: 800; font-size: 44px; line-height: .9; letter-spacing: -.01em; }
+.vcg-podcover__title b { color: var(--mango); font-weight: 800; }
+.vcg-podcover__by { align-self: flex-end; text-align: right; font-family: var(--font-display); font-size: 17px; line-height: .9; text-transform: uppercase; }
+.vcg-podcover__grid { position: absolute; inset: 40% 0 0 0; background-image: linear-gradient(rgba(255,255,255,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px);
+  background-size: 22px 22px; transform: perspective(200px) rotateX(55deg); transform-origin: bottom; }
+.vcg-podcover__mango { position: absolute; left: 22%; top: 30%; width: 56%; aspect-ratio: .8; border-radius: 50% 50% 46% 54% / 58% 58% 42% 42%;
+  background: linear-gradient(110deg, var(--mango) 0 48%, var(--blue) 70%); transform: rotate(-24deg); }
+
+/* ---------- Meta-Zeile ---------- */
+.vcg-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-5); font-family: var(--font-sans); font-weight: 500;
+  font-size: 15px; line-height: 1.4; color: var(--ink); list-style: none; margin: 0; padding: 0; }
+.vcg-meta li { display: inline-flex; align-items: flex-start; gap: var(--space-2); }
+.vcg-meta svg { width: 1.4em; height: 1.4em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; margin-top: -1px; }
+.vcg-meta--stack { flex-direction: column; align-items: flex-start; }
+
+/* ---------- Event-Ticket ---------- */
+.vcg-ticket { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: var(--space-6); align-items: center;
+  border: var(--stroke-3) solid var(--line); border-left: 0; border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: var(--space-6) var(--space-5) var(--space-6) 56px;
+  background: var(--surface); }
+.vcg-ticket::before { content: ""; position: absolute; left: -2px; top: -3px; bottom: -3px; width: 18px; background: var(--line);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='22' viewBox='0 0 18 22'%3E%3Cpath d='M9 0 C1 3.5 1 7.5 9 11 C17 14.5 17 18.5 9 22' fill='none' stroke='black' stroke-width='3'/%3E%3C/svg%3E") 0 0 / 18px 22px repeat-y;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='22' viewBox='0 0 18 22'%3E%3Cpath d='M9 0 C1 3.5 1 7.5 9 11 C17 14.5 17 18.5 9 22' fill='none' stroke='black' stroke-width='3'/%3E%3C/svg%3E") 0 0 / 18px 22px repeat-y; }
+.vcg-ticket__title { margin: var(--space-3) 0 var(--space-3); }
+.vcg-ticket__sub { display: flex; align-items: center; gap: var(--space-4); font-family: var(--font-head); font-weight: 800; font-size: 34px; line-height: 1;
+  text-transform: uppercase; margin-bottom: var(--space-4); }
+.vcg-ticket .vcg-burst { position: absolute; left: -24px; bottom: -28px; width: 128px; }
+@media (max-width: 860px) { .vcg-ticket { grid-template-columns: 1fr; padding-left: 40px; } }
+
+/* ---------- Foto, Polaroid, Tape ---------- */
+.vcg-photo { position: relative; display: block; background: var(--surface-raised); padding: 8px; box-shadow: var(--shadow-sticker); transform: rotate(1deg); }
+.vcg-photo img { display: block; width: 100%; height: auto; }
+.vcg-photo__note { position: absolute; right: 48px; bottom: -14px; }
+.vcg-tape { position: absolute; width: 150px; height: 38px; background: var(--mango); opacity: .9; transform: rotate(var(--tilt-l));
+  clip-path: polygon(0 8%, 5% 0, 12% 10%, 20% 0, 100% 4%, 96% 30%, 100% 55%, 95% 80%, 100% 100%, 10% 94%, 4% 100%, 0 70%, 4% 45%); }
+.vcg-tape--tr { right: -18px; top: -16px; transform: rotate(14deg); }
+.vcg-tape--tl { left: -18px; top: -14px; }
+
+/* ---------- Inhaltskarte ---------- */
+.vcg-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-5); }
+@media (max-width: 860px) { .vcg-cards { grid-template-columns: 1fr; } }
+.vcg-card { position: relative; display: flex; flex-direction: column; border: var(--stroke-2) solid var(--line); border-radius: var(--radius-sm);
+  background: var(--surface); padding: 10px; color: var(--ink); text-decoration: none; transition: transform .15s; }
+.vcg-card:hover { transform: translateY(-3px) rotate(-.4deg); }
+.vcg-card__media { position: relative; aspect-ratio: 2.45 / 1; overflow: hidden; background: var(--ink); }
+.vcg-card__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vcg-card__media .vcg-label { position: absolute; left: 0; top: 0; font-size: 16px; padding: 8px 10px 7px; }
+.vcg-card__body { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: var(--space-4); padding: var(--space-4) var(--space-2) var(--space-2); }
+.vcg-card__title { grid-column: 1 / -1; font-family: var(--font-head); font-weight: 700; font-size: 24px; line-height: 1.05; text-transform: uppercase; margin: 0; }
+.vcg-card__text { font-size: 15px; line-height: 1.4; margin: 0; }
+.vcg-card .vcg-arrow { width: 28px; height: 28px; transition: transform .15s; }
+.vcg-card:hover .vcg-arrow { transform: translateX(4px); }
+
+/* ---------- Footer (immer data-theme="dark") ---------- */
+.vcg-footer { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: var(--space-6); align-items: center;
+  padding: var(--space-6) var(--space-7); background: var(--surface); color: var(--ink); }
+.vcg-footer__mark { font-family: var(--font-display); text-transform: uppercase; font-size: 76px; line-height: .9; color: transparent;
+  -webkit-text-stroke: 1.5px var(--ink); white-space: nowrap; }
+.vcg-footer__text { font-size: 15px; line-height: 1.45; margin: 0 0 var(--space-4); max-width: 22em; }
+.vcg-footer__links { list-style: none; margin: 0; padding: 0; font-size: 15px; line-height: 1.3; }
+.vcg-footer__links a { color: var(--ink); text-decoration: none; }
+.vcg-footer__links a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.vcg-social { display: flex; gap: var(--space-5); }
+.vcg-social a { color: var(--ink); display: inline-flex; }
+.vcg-social svg { width: 30px; height: 30px; fill: currentColor; }
+.vcg-footer__claim { position: relative; }
+@media (max-width: 960px) { .vcg-footer { grid-template-columns: 1fr; } .vcg-footer__mark { font-size: 54px; } }
+
+/* ---------- Doodles (Inline-SVG, Strich in currentColor) ---------- */
+.vcg-doodle { display: inline-block; color: var(--ink); overflow: visible; }
+.vcg-doodle path, .vcg-doodle circle, .vcg-doodle ellipse, .vcg-doodle line { fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.vcg-doodle--blue { color: var(--blue); }
+.vcg-doodle--mango { color: var(--mango); }
+.vcg-doodle--fill path.fill { fill: currentColor; stroke: none; }
+
+
+/* =====================================================================
+   Ergänzung Web (nicht Teil von docs/brand/bundle.css)
+   ===================================================================== */
+
+/* Ergänzung Web: Sektion */
+.vcg-section { max-width: 1280px; margin-inline: auto; padding-inline: var(--space-4); padding-block: var(--space-8); }
+.vcg-section--tight { padding-block: var(--space-6); }
+.vcg-section--full { max-width: none; }
+@media (min-width: 861px) {
+  .vcg-section { padding-inline: var(--space-7); padding-block: var(--space-9); }
+  .vcg-section--tight { padding-block: var(--space-6); }
+}
+
+/* Ergänzung Web: Fließtext */
+.vcg-prose { font-family: var(--font-sans); font-size: 17px; line-height: 1.55; color: var(--ink); }
+.vcg-prose > * { max-width: 68ch; }
+.vcg-prose > pre, .vcg-prose > table, .vcg-prose > figure, .vcg-prose > img { max-width: 100%; }
+.vcg-prose p { margin: 0 0 var(--space-4); }
+.vcg-prose h2, .vcg-prose h3, .vcg-prose h4 { font-family: var(--font-head); font-weight: 700; color: var(--ink); scroll-margin-top: 96px; }
+.vcg-prose h2 { font-size: 36px; line-height: 1.05; margin: var(--space-8) 0 var(--space-4); }
+.vcg-prose h3 { font-size: 26px; line-height: 1.1; margin: var(--space-6) 0 var(--space-3); }
+.vcg-prose h4 { font-size: 21px; line-height: 1.15; margin: var(--space-5) 0 var(--space-2); }
+.vcg-prose a { color: var(--ink); text-decoration: underline; text-decoration-thickness: var(--stroke-1); text-underline-offset: 4px; }
+.vcg-prose a:hover { color: var(--blue); }
+.vcg-prose ul, .vcg-prose ol { margin: 0 0 var(--space-4); padding-left: var(--space-5); }
+.vcg-prose ul { list-style: none; padding-left: var(--space-5); }
+.vcg-prose ul > li { position: relative; margin: var(--space-1) 0; }
+.vcg-prose ul > li::before { content: ""; position: absolute; left: calc(-1 * var(--space-5)); top: .62em; width: 9px; height: 9px; background: var(--blue); }
+.vcg-prose ol > li { margin: var(--space-1) 0; padding-left: var(--space-1); }
+.vcg-prose ol > li::marker { font-family: var(--font-head); font-weight: 700; color: var(--blue); }
+.vcg-prose blockquote { margin: var(--space-5) 0; padding: var(--space-1) 0 var(--space-1) var(--space-4); border-left: var(--stroke-3) solid var(--blue); }
+.vcg-prose blockquote > :last-child { margin-bottom: 0; }
+.vcg-prose code { font-family: var(--font-mono); font-size: .9em; background: var(--surface-raised); border: 1px solid var(--ink); border-radius: var(--radius-sm); padding: .08em .35em; }
+.vcg-prose pre { background: var(--ink); color: var(--ink-inverse); border-radius: var(--radius-sm); padding: var(--space-4); overflow-x: auto; margin: var(--space-5) 0; font-size: 15px; line-height: 1.5; }
+.vcg-prose pre code { background: transparent; border: 0; padding: 0; color: inherit; font-size: inherit; }
+.vcg-prose table { width: 100%; border-collapse: collapse; margin: var(--space-5) 0; font-size: 15px; display: block; overflow-x: auto; }
+.vcg-prose th { font-family: var(--font-head); font-weight: 700; text-align: left; border-bottom: var(--stroke-2) solid var(--ink); padding: var(--space-2) var(--space-3); }
+.vcg-prose td { border-bottom: 1px solid var(--ink-muted); padding: var(--space-2) var(--space-3); vertical-align: top; }
+.vcg-prose hr { border: 0; border-top: var(--stroke-2) solid var(--ink); margin: var(--space-6) 0; }
+.vcg-prose img { max-width: 100%; height: auto; border: var(--stroke-2) solid var(--ink); border-radius: var(--radius-sm); }
+.vcg-prose strong { font-weight: 700; }
+
+/* Ergänzung Web: Seitenkopf */
+.vcg-pagehead { display: grid; gap: var(--space-6); align-items: center; }
+.vcg-pagehead--aside { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+.vcg-pagehead__lead { font-size: 20px; line-height: 1.45; max-width: 46ch; margin: var(--space-5) 0 0; }
+.vcg-pagehead__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-6); margin-top: var(--space-5); }
+.vcg-pagehead__eyebrow { margin-bottom: var(--space-4); }
+@media (max-width: 860px) { .vcg-pagehead--aside { grid-template-columns: 1fr; } }
+
+/* Ergänzung Web: Sektionskopf */
+.vcg-sechead { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--space-3) var(--space-5); margin-bottom: var(--space-6); }
+.vcg-sechead__label { display: inline-block; margin-bottom: var(--space-3); }
+.vcg-sechead__title { font-family: var(--font-head); font-weight: 700; font-size: clamp(34px, 4vw, 48px); line-height: 1; letter-spacing: -.005em; margin: 0; }
+.vcg-sechead__title--2 { font-size: clamp(28px, 3vw, 36px); line-height: 1.05; letter-spacing: 0; }
+
+/* Ergänzung Web: Typo-Utilities (Werte aus docs/brand/tokens.json) */
+.vcg-head-1 { font-family: var(--font-head); font-weight: 700; font-size: clamp(34px, 4vw, 48px); line-height: 1; letter-spacing: -.005em; }
+.vcg-head-2 { font-family: var(--font-head); font-weight: 700; font-size: clamp(28px, 3vw, 36px); line-height: 1.05; }
+.vcg-head-3 { font-family: var(--font-head); font-weight: 700; font-size: 26px; line-height: 1.1; }
+.vcg-text-lead { font-family: var(--font-sans); font-weight: 400; font-size: 20px; line-height: 1.45; max-width: 46ch; }
+@media (max-width: 860px) { .vcg-panel__cover { max-width: 240px; } }
+
+/* Ergänzung Web: Kartentext-Variante, Panel-Cover-Slot */
+.vcg-panel__cover { min-width: 0; }
+.vcg-panel__cover img { width: 100%; display: block; border-radius: var(--radius-sm); }
+.vcg-panel__doodle { margin-left: -40px; width: 58px; }
+.vcg-card__media img { position: static; }
+
+/* Ergänzung Web: Ticket-Hilfsklassen (statt Inline-Styles der Vorlage) */
+.vcg-ticket__main { position: relative; }
+.vcg-ticket__meta { margin-left: 72px; }
+.vcg-ticket__meta--stack { margin: 10px 0 0 72px; }
+.vcg-ticket__action { position: relative; margin: var(--space-5) 0 0 72px; }
+.vcg-ticket__doodle { position: absolute; right: -10px; bottom: 24px; width: 110px; }
+.vcg-ticket .vcg-photo__smiley { position: absolute; right: -26px; bottom: -30px; width: 56px; background: var(--surface); border-radius: 50%; }
+@media (max-width: 860px) { .vcg-ticket__meta, .vcg-ticket__meta--stack { margin-left: 0; } .vcg-ticket__doodle { display: none; } }
+/* Ergänzung Web: Mobil-Fix Ticket. Die Unterzeile ist eine Flex-Zeile; ohne Umbruch addieren sich „Im Computermuseum"
+   und das Label zur Mindestbreite und sprengen die 1fr-Spalte (Overflow bei 375px). */
+@media (max-width: 860px) {
+  .vcg-ticket { grid-template-columns: minmax(0, 1fr); }
+  .vcg-ticket__sub { flex-wrap: wrap; gap: var(--space-2) var(--space-4); font-size: 26px; }
+  .vcg-ticket .vcg-photo__smiley { right: -8px; bottom: -24px; width: 48px; }
+  .vcg-ticket__action { margin-left: 0; }
+  /* Starburst mobil an die obere rechte Ecke, damit er Foto-Notiz und Text nicht verdeckt */
+  .vcg-ticket .vcg-burst { left: auto; right: -10px; top: -30px; bottom: auto; width: 104px; }
+  .vcg-ticket .vcg-burst > span { font-size: 21px; }
+}
+
+/* Ergänzung Web: Sprechblase / Sticker Mehrzeiler */
+.vcg-bubble > span { display: block; }
+
+/* Ergänzung Web (Orchestrator-Abnahme): Mobil-Raster gegen Min-Content-Blowout. Die DS-Vorlage nutzt mobil `1fr`
+   (= minmax(auto, 1fr)); feste Deko-Breiten (Kritzel-Unterstrich 260px) plus Textlink sprengten so die Spalte. */
+@media (max-width: 860px) {
+  .vcg-hero, .vcg-panel, .vcg-cards, .vcg-pagehead--aside { grid-template-columns: minmax(0, 1fr); }
+  .vcg-hero__ctas { flex-wrap: wrap; row-gap: var(--space-5); }
+  .vcg-hero__ctas .vcg-doodle { max-width: 100%; }
+}
+
+/* Ergänzung Web: Deko (Tape, Smiley, Starburst) darf über Kanten ragen, aber nie horizontales Scrollen erzeugen.
+   `clip` statt `hidden`: erzeugt keinen Scroll-Container, `position: sticky` im Header bleibt intakt. */
+html, body { overflow-x: clip; }
+
+/* Ergänzung Web: Display-Sicherheit auf kleinen Viewports (kein horizontales Scrollen bei 320px) */
+@media (max-width: 399px) {
+  .vcg-display .vcg-line { white-space: normal; }
+  .vcg-ticket { padding-right: var(--space-4); }
+}
+
+/* Ergänzung Web: Ticket-Titel Variation, Foto im Raster */
+.vcg-photo--flat { transform: none; }
+.vcg-photo img { object-fit: cover; }
+
+/* Ergänzung Web: Hilfsklassen */
+.vcg-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.vcg-icon { width: 1.4em; height: 1.4em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.vcg-play--pressed { transform: scale(.97); }
+
+/* Ergänzung Web: Podcast-Cover Titel-Fix (Cover-Zeilen) */
+.vcg-podcover__title span { display: block; }
+.vcg-podcover > * { position: relative; }
+.vcg-podcover > .vcg-podcover__grid, .vcg-podcover > .vcg-podcover__mango { position: absolute; }
+
+/* Ergänzung Web: Hero-Figur mit echter Sprechblase links vom Kopf. Die Blase skaliert mit der Art-Spalte
+   (Prozentbreite, DS-Mindestmaße aufgehoben), damit sie das Gesicht (ab x ≈ 38 %) nie überdeckt. */
+.vcg-hero__art { min-height: 0; }
+/* Zwei Zeilen wie im Pack (design.json): kein Umbruch innerhalb einer Zeile; Polsterung in em, damit die Innenbreite
+   mit der Schrift skaliert. Mobil bekommt die Blase oberhalb des Kopfes Platz (padding-top der Bildspalte). */
+.vcg-hero__bubble { position: absolute; left: 0; top: 0; width: 54%; min-width: 0; min-height: 0; aspect-ratio: 10 / 7;
+  padding: 1em 1.4em 1.5em 1.1em; font-size: clamp(14px, 4.4vw, 20px); z-index: 2; }
+.vcg-hero__bubble { align-content: center; row-gap: .1em; }
+.vcg-hero__bubble > span { white-space: nowrap; }
+@media (max-width: 860px) {
+  .vcg-hero__art { padding-top: 22%; }
+}
+@media (min-width: 861px) {
+  /* Oberhalb von „DU DENKST." ist links Luft („KI BAUT." ist kürzer): Blase ragt nach links, endet vor dem Gesicht. */
+  .vcg-hero__bubble { left: -10%; top: 2%; width: 46%; font-size: clamp(16px, 1.55vw, 24px); }
+}
+
+/* Ergänzung Web: Karl-Dieter (Posen, Sticker, Animationen) */
+.vcg-kd { display: block; max-width: 100%; height: auto; }
+.vcg-kd-sticker { display: block; height: auto; max-width: 100%; flex: none; }
+.vcg-kd-sticker--s { width: clamp(88px, 22vw, 120px); }
+.vcg-kd-sticker--m { width: clamp(120px, 34vw, 180px); }
+.vcg-kd-sticker--l { width: clamp(160px, 50vw, 260px); }
+.vcg-kd-sticker--tilt-s { transform: rotate(var(--tilt-s)); }
+.vcg-kd-sticker--tilt-m { transform: rotate(var(--tilt-m)); }
+/* Sticker als Seitenkopf-Aside: in der Spalte zentriert, damit lange Titelzeilen nicht an die Sprechblase stoßen. */
+@media (min-width: 861px) { .vcg-pagehead--aside > div > .vcg-kd-sticker { margin-inline: auto; } }
+
+/* Ergänzung Web: Fragen & Antworten (Akkordeon + Karl-Dieter) */
+.vcg-qa__intro { max-width: 60ch; margin-top: var(--space-3); }
+.vcg-qa { display: grid; grid-template-columns: minmax(0, 1fr) clamp(200px, 24vw, 300px); gap: var(--space-6) var(--space-8); align-items: start; margin-top: var(--space-6); }
+.vcg-qa__kd { grid-column: 2; grid-row: 1; position: sticky; top: var(--space-8); justify-self: center; }
+.vcg-qa__list { grid-column: 1; grid-row: 1; min-width: 0; border-top: 2px solid var(--ink); }
+.vcg-qa--pose .vcg-qa__kd { width: 100%; }
+@media (max-width: 860px) {
+  .vcg-qa { grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+  .vcg-qa__kd { grid-column: 1; grid-row: 1; position: static; justify-self: start; }
+  .vcg-qa--pose .vcg-qa__kd { width: min(70%, 280px); }
+  .vcg-qa__list { grid-row: 2; }
+}

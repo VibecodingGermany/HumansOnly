@@ -1,0 +1,62 @@
+/* Vibecoding Germany – Design Tokens (Quelle: docs/brand/tokens.json).
+   Einzige Datei der Web-App, in der Hex-Farben stehen dürfen.
+   Keine --font-* Variablen: die setzt next/font in app/layout.tsx. */
+
+:root,
+[data-theme="light"] {
+  /* Farbe (Papier) */
+  --surface: #faf7ef;
+  --surface-raised: #ffffff;
+  --ink: #0a0a0a;
+  --ink-muted: #55524a;
+  --ink-inverse: #faf7ef;
+  --line: var(--ink);
+  --blue: #0238ef;
+  --on-blue: #ffffff;
+  --mango: #fca50a;
+  --mango-deep: #f98b02;
+  --on-mango: #0a0a0a;
+  --focus: #0238ef;
+
+  /* Abstand */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 40px;
+  --space-8: 56px;
+  --space-9: 80px;
+  --space-10: 120px;
+
+  /* Radius */
+  --radius-0: 0px;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-full: 9999px;
+
+  /* Strich */
+  --stroke-1: 1.5px;
+  --stroke-2: 2px;
+  --stroke-3: 3px;
+
+  /* Neigung */
+  --tilt-s: -2deg;
+  --tilt-m: 3deg;
+  --tilt-l: -8deg;
+
+  /* Schatten (nur aufgeklebte Dinge) */
+  --shadow-sticker: 0 2px 0 rgba(10, 10, 10, 0.08), 0 6px 14px rgba(10, 10, 10, 0.16);
+}
+
+[data-theme="dark"] {
+  --surface: #0a0a0a;
+  --surface-raised: #1c1b18;
+  --ink: #faf7ef;
+  --ink-muted: #b3ad9f;
+  --ink-inverse: #0a0a0a;
+  --line: var(--ink);
+  --focus: #fca50a;
+}

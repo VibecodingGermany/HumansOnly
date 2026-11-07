@@ -1,0 +1,195 @@
+import type { Profile, Snapshot } from "./model";
+export const DEMO_CODE = "MOIN-VIBECODING";
+export const SPACE_ID = "10000000-0000-4000-8000-000000000001";
+const ids = ["dennis", "mira", "jonas", "aylin", "lea", "tom"].map(
+  (_, i) => `20000000-0000-4000-8000-00000000000${i + 1}`,
+);
+const joined = "2026-11-01T10:00:00.000Z";
+const people = [
+  [
+    "dennis",
+    "Dennis",
+    "Gastgeber, Möglichmacher und Freund von guten Ideen. Schön, dass du hier bist.",
+  ],
+  [
+    "mira",
+    "Mira",
+    "Designerin aus Hamburg. Ich baue kleine Tools, die den Alltag ein bisschen schöner machen.",
+  ],
+  [
+    "jonas",
+    "Jonas",
+    "Flutter im Kopf, Kaffee in der Hand. Gerade entsteht mein erstes Indie-Projekt.",
+  ],
+  [
+    "aylin",
+    "Aylin",
+    "Zwischen Code und Kreativität. Ich mag ehrliches Feedback und unfertige Ideen.",
+  ],
+  [
+    "lea",
+    "Lea",
+    "Musik, Web und neugierige Fragen. Gemeinsam bauen macht einfach mehr Spaß.",
+  ],
+  [
+    "tom",
+    "Tom",
+    "Weniger Folien, mehr ausprobieren. Mein nächstes Projekt? Finden wir zusammen heraus.",
+  ],
+];
+export function createDemoSnapshot(): Snapshot {
+  const profiles: Profile[] = people.map(
+    ([username, display_name, bio], i) => ({
+      id: ids[i],
+      username,
+      display_name,
+      bio,
+      avatar_url: `/demo/avatar-${username}.svg`,
+      voice_intro_url: `/demo/intro-${username}.mp3`,
+      voice_duration_sec: 12,
+      invited_by_id: i === 0 ? null : ids[i < 4 ? 0 : 1],
+      invites_left: 3,
+      can_invite: true,
+      created_at: joined,
+    }),
+  );
+  return {
+    profiles,
+    currentUserId: ids[0],
+    spaces: [
+      {
+        id: SPACE_ID,
+        slug: "vibecoding-germany",
+        name: "Vibecoding Germany",
+        description: "Gute Ideen. Echte Menschen. Einfach machen.",
+        owner_id: ids[0],
+        pinned_info: [
+          {
+            title: "Offene Werkbank",
+            text: "Zeig uns, woran du gerade baust. Unfertig ist ausdrücklich willkommen.",
+          },
+          {
+            title: "Unser digitaler Stammtisch",
+            text: "Neue Termine und alle Infos findest du bei Vibecoding Germany.",
+            url: "https://vibecoding-germany.de",
+          },
+        ],
+        access_type: "invite",
+        price_cents: 0,
+        created_at: joined,
+      },
+    ],
+    memberships: ids.map((user_id, i) => ({
+      space_id: SPACE_ID,
+      user_id,
+      role: i === 0 ? "owner" : "member",
+      joined_at: joined,
+    })),
+    posts: [
+      {
+        id: "30000000-0000-4000-8000-000000000001",
+        author_id: ids[1],
+        space_id: SPACE_ID,
+        text: "Kleiner Feierabend-Build: ein Ort für all die Ideen, die sonst auf Zetteln verschwinden.\n\nNoch nicht perfekt. Aber endlich draußen. Was habt ihr diese Woche einfach mal gemacht? ✨",
+        image_url: "/demo/werkbank.svg",
+        audio_url: null,
+        audio_duration_sec: null,
+        parent_id: null,
+        slop_status: "valuable_verified",
+        valuable_votes_count: 3,
+        slop_votes_count: 0,
+        created_at: "2026-11-04T08:40:00.000Z",
+      },
+      {
+        id: "30000000-0000-4000-8000-000000000002",
+        author_id: ids[2],
+        space_id: SPACE_ID,
+        text: "Eine kleine Sprachnotiz aus meiner Werkstatt. Vielleicht kennt ihr das Gefühl auch? 🎙️",
+        image_url: null,
+        audio_url: "/demo/note-jonas.mp3",
+        audio_duration_sec: 15,
+        parent_id: null,
+        slop_status: "clean",
+        valuable_votes_count: 0,
+        slop_votes_count: 0,
+        created_at: "2026-11-04T07:25:00.000Z",
+      },
+      {
+        id: "30000000-0000-4000-8000-000000000003",
+        author_id: ids[3],
+        space_id: SPACE_ID,
+        text: "Unpopuläre Meinung: Ein guter Prompt beginnt mit einer richtig guten Frage.\n\nWelche Frage hat euer Projekt zuletzt weitergebracht?",
+        image_url: null,
+        audio_url: null,
+        audio_duration_sec: null,
+        parent_id: null,
+        slop_status: "under_review",
+        valuable_votes_count: 0,
+        slop_votes_count: 2,
+        created_at: "2026-11-03T18:10:00.000Z",
+      },
+      {
+        id: "30000000-0000-4000-8000-000000000004",
+        author_id: ids[0],
+        space_id: null,
+        text: "Moin im Clubhaus! 👋\n\nHier zählen Menschen, keine Follower-Zahlen. Stell dich vor, hör rein und mach es dir gemütlich. KI als Werkzeug? Klar. Gedankenloser Copy-Paste-Slop? Lieber nicht.",
+        image_url: null,
+        audio_url: null,
+        audio_duration_sec: null,
+        parent_id: null,
+        slop_status: "valuable_verified",
+        valuable_votes_count: 2,
+        slop_votes_count: 0,
+        created_at: "2026-11-04T08:00:00.000Z",
+      },
+      {
+        id: "30000000-0000-4000-8000-000000000005",
+        author_id: ids[4],
+        space_id: null,
+        text: "Ich komme aus der Musik-Ecke und bin neugierig: Wer baut hier etwas mit Sound? Lust auf einen gemeinsamen Feierabend-Jam?",
+        image_url: null,
+        audio_url: "/demo/intro-lea.mp3",
+        audio_duration_sec: 12,
+        parent_id: null,
+        slop_status: "clean",
+        valuable_votes_count: 0,
+        slop_votes_count: 0,
+        created_at: "2026-11-03T16:00:00.000Z",
+      },
+    ],
+    tickets: [
+      {
+        id: "40000000-0000-4000-8000-000000000001",
+        code: DEMO_CODE,
+        creator_id: ids[1],
+        target_space_id: SPACE_ID,
+        redeemed_by_id: null,
+        redeemed_at: null,
+        expires_at: "2037-01-01T00:00:00.000Z",
+      },
+    ],
+    votes: [
+      ...[2, 3, 4].map((i) => ({
+        id: `v1-${i}`,
+        post_id: "30000000-0000-4000-8000-000000000001",
+        voter_id: ids[i],
+        vote: "valuable" as const,
+        created_at: joined,
+      })),
+      ...[1, 4].map((i) => ({
+        id: `v3-${i}`,
+        post_id: "30000000-0000-4000-8000-000000000003",
+        voter_id: ids[i],
+        vote: "slop" as const,
+        created_at: joined,
+      })),
+      ...[1, 2].map((i) => ({
+        id: `v4-${i}`,
+        post_id: "30000000-0000-4000-8000-000000000004",
+        voter_id: ids[i],
+        vote: "valuable" as const,
+        created_at: joined,
+      })),
+    ],
+  };
+}
