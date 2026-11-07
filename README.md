@@ -90,7 +90,7 @@ npm audit --omit=dev
 
 Die durch Next.js gebundene alte PostCSS-Version wird gezielt auf `8.5.32` überschrieben; der Next.js-Major bleibt 15. Reproduzierbare Abhängigkeiten stehen im npm-Lockfile.
 
-Konkrete Ergebnisse und Grenzen: [VALIDATION.md](docs/VALIDATION.md). Die Backend-SQL-Prüfung verwendet einen isolierten PostgreSQL-Cluster mit Supabase-kompatiblen Auth-/Storage-Stubs. Gehostete E-Mail-Zustellung, Storage-HTTP und Realtime müssen vor dem Livebetrieb am tatsächlichen Supabase-Projekt geprüft werden.
+Konkrete Ergebnisse und Grenzen: [VALIDATION.md](docs/VALIDATION.md). Die Backend-SQL-Prüfung verwendet einen isolierten PostgreSQL-Cluster mit Supabase-kompatiblen Auth-/Storage-Stubs. Gehostete Auth-, Storage-HTTP- und Realtime-Prüfungen sowie das Live-Deployment vom 2026-11-07 sind dort ebenfalls dokumentiert; die persönliche Bestätigung des Mail-Logins und physische Geräteabnahme bleiben separat ausgewiesen.
 
 MVP-Grenzen: Feed liest die jüngsten 100 sichtbaren Posts; kein unendliches Archiv. Demo-Speicher hat Browser-Quoten. Synthetische Demo-Daten werden nicht nach Supabase importiert. Bezahlte Räume, Kurse, Creator-Kasse und automatische Moderationssanktionen sind spätere Phasen. `hidden` bedeutet ausgeblendeten Inhalt für berechtigte Raum-Mitglieder, keine zusätzliche Vertraulichkeitsstufe. Zugang zu fremden Räumen bleibt durch RLS gesperrt.
 

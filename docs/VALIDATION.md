@@ -1,5 +1,28 @@
 # Validierung — Humans Only 2.0
 
+## Live-Deployment 2026-11-07
+
+Release v2.0.0 / `2a62c42270a7132ecac630f61cf8934f5ff79f1f` wurde auf dem bestehenden Server aktiviert. Beide öffentlichen Domains liefern die neue App über HTTPS. Der Produktionsbuild verwendet das tatsächliche dedizierte Supabase-Projekt, keinen Demo-Modus. Der folgende historische lokale Abnahmebericht bleibt unverändert als Nachweis erhalten.
+
+Erfolgreich am gehosteten Projekt geprüft:
+
+- Migration, Seed, sechs Tabellen mit RLS, drei private Buckets und Realtime-Publication.
+- Echter Gastgeber-Auth-Account, authentifizierte Datenabfragen und Owner-Bootstrap.
+- Profilfreier Testgast sieht keine Clubdaten; direkte Tabellenwrites sind gesperrt.
+- Gastgeber erstellt ein Ticket; anonyme Vorschau funktioniert; Sprachdatei-Upload und einmalige Einlösung erzeugen Profil und Mitgliedschaft. Wiederholte Einlösung scheitert.
+- Fremde Upload-Pfade und unreferenzierte fremde Sprachdateien sind gesperrt. Nach Aufnahme ins Clubhaus funktioniert der signierte Medienabruf; der öffentliche Bucket-Pfad bleibt gesperrt.
+- Beiträge im Raum, Verbot der Selbstabstimmung und Stimmenwechsel mit korrekten Zählern.
+- Realtime zwischen zwei echten Auth-Clients: zwei erfolgreiche Prüfungen, davon eine mit Beitrag unmittelbar nach `SUBSCRIBED`. Beim ersten Verbindungsversuch kam kein Ereignis innerhalb des Prüfzeitraums; die Providerlogs zeigen zu diesem Zeitpunkt die Erstinitialisierung des neuen Tenants. Keine Schema- oder App-Änderung war für die erfolgreichen Wiederholungen nötig.
+- Sämtliche temporären Beiträge, Stimmen, Ticket, Auth-Nutzer und die synthetische WAV-Datei wurden entfernt. Dennis besitzt wieder drei Tickets; es bleiben genau ein Auth-Nutzer und ein Profil, keine Posts, Tickets oder Storage-Objekte aus den Prüfungen.
+- Beide Domains: HTTP 200, jeweils 14 Skript-/Stylesheet-Dateien erreichbar, Manifest, Service Worker und Offline-Seite erreichbar. Auth-Seiten erhalten `private, no-store`; der Service Worker wird nicht langfristig gecacht.
+- Öffentliche Desktop-/Mobilansicht mit echter Gastgeber-Sitzung, Tickets und Profil erreichbar, kein horizontaler Überlauf bei 390 px, keine JavaScript- oder Supabase-HTTP-Fehler. Diese Prüfung verwendet eine regulär erhaltene Auth-Sitzung und ersetzt keinen Mail-Callback-Test.
+- Vorhandener SMTP-Server akzeptiert STARTTLS und Anmeldung. Die öffentliche App hat die erste Anmeldemail angefordert; Supabase protokolliert `/otp` mit HTTP 200 und der korrekten Callback-URL. Posteingang und persönlicher Mail-Link-Abschluss wurden zur Bestätigung an den Benutzer übergeben und sind noch nicht unabhängig nachgewiesen.
+- PM2-Prozesse V1 und V2 online, V2 ohne Neustarts; Nginx-Syntaxprüfung erfolgreich, Umschaltung aktiv und PM2-Prozessliste gespeichert.
+
+Die Supabase-Hinweise auf absichtlich ausführbare SECURITY-DEFINER-RPCs wurden gegen deren Auth-/Mitgliedschaftsprüfungen geprüft ([anonyme Funktionen](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable), [authentifizierte Funktionen](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable)). Der Health-Advisor meldet keine Befunde. Passwort-Leak-Schutz ist nicht aktiviert ([Providerhinweis](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)); die App bietet E-Mail-Link/Code-Anmeldung. Zwei fehlende Fremdschlüsselindizes und noch unbenutzte Indizes sind als nicht blockierende Performance-Hinweise erfasst ([Fremdschlüssel](https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys), [unbenutzte Indizes](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index)).
+
+Lokale, ignorierte Betriebsnachweise liegen unter `output/deployment-2026-11-07/`. Zugangsdaten und Auth-Sitzungen werden nicht veröffentlicht. Physische iOS-/Android-Aufnahmen, Mikrofonqualität und Installation auf echten Geräten bleiben offen.
+
 ## Release-Prüfung 2026-11-07
 
 Für den ausdrücklich beauftragten Push und Release wurde der Workspace mit der bestehenden Historie von `cubetribe/HumansOnly` verbunden. Release-Branch: `feat/humans-only-v2`; Basis: `main` / `f95b6acf439c8dd9d65ffa961670d13158c1d1f4`. Der folgende ursprüngliche Abnahmebericht vom 2026-11-04 bleibt als historischer Nachweis erhalten.

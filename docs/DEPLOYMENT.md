@@ -1,6 +1,6 @@
 # Humans Only 2.0 — Einrichtung und Betrieb
 
-Stand 2026-11-04. Dieses Dokument beschreibt die **neue** Anwendung. Die ursprüngliche VPS-/Nginx-/PM2-Anleitung bleibt unverändert unter [`../_legacy_v1/docs/DEPLOYMENT.md`](../_legacy_v1/docs/DEPLOYMENT.md); `.env_new_Server` bleibt unverändert im Projekt-Root und ist ignoriert. Ihre Zugangsdaten und alten Migrations-/Deploy-Skripte gehören nicht in V2.
+Stand 2026-11-07. Dieses Dokument beschreibt die **neue** Anwendung. Die ursprüngliche VPS-/Nginx-/PM2-Anleitung bleibt unverändert unter [`../_legacy_v1/docs/DEPLOYMENT.md`](../_legacy_v1/docs/DEPLOYMENT.md); `.env_new_Server` bleibt unverändert im Projekt-Root und ist ignoriert. Ihre Zugangsdaten und alten Migrations-/Deploy-Skripte gehören nicht in V2.
 
 ## Lokaler Modus
 
@@ -48,4 +48,14 @@ Lokal geprüftes SQL ist nicht dasselbe wie ein gehosteter Integrationstest. Am 
 
 `can_invite=false` für ein Profil entzieht dessen Ausgabe- und Einlöserechte auch für bestehende Tickets. Das setzt nur eine vertrauenswürdige Administration, keine Browser-Komponente. Automatische Sanktionen und ein Admin-UI sind nicht Teil des Durchstichs.
 
-Es wurde für diesen Auftrag **kein externer Dienst geändert und nichts veröffentlicht**. Das Archiv ist vollständig vorhanden; es gibt kein automatisches Upgrade alter Konten. Eine Veröffentlichung braucht eine separate Entscheidung über neue Infrastruktur und Datenübernahme.
+## Produktiver Stand — 2026-11-07
+
+Der ausdrücklich freigegebene Release **v2.0.0** (Commit `2a62c42270a7132ecac630f61cf8934f5ff79f1f`) läuft unter [humans-only.de](https://humans-only.de) und [ho.nm-forum.de](https://ho.nm-forum.de). Das dedizierte Supabase-Projekt `humans-only-v2` in der Organisation Nerdsmiths liegt in Frankfurt (`eu-central-1`). Migration und Seed sind angewendet; der erste Gastgeber `dennis` besitzt den Raum Vibecoding Germany und drei Einladungstickets. Es wurden keine V1-Konten oder Demo-Daten übernommen.
+
+Auth verwendet `https://humans-only.de` als Site URL. Die beiden exakten Callback-URLs sind `https://humans-only.de/auth/callback` und `https://ho.nm-forum.de/auth/callback`. Bestätigungs- und Anmeldemails enthalten `{{ .ConfirmationURL }}` und `{{ .Token }}`. Der ausdrücklich freigegebene vorhandene SMTP-Zugang von Vibecoding Germany ist ausschließlich in Supabase hinterlegt; Absender ist `Humans Only <noreply@vibecoding-germany.de>`. Das anfängliche Versandlimit beträgt 30 E-Mails pro Stunde. Es wurden keine SMTP-Zugangsdaten in Repository oder App übernommen.
+
+Die App liegt auf dem bestehenden VPS unter `/var/www/humansonly-v2/releases/2a62c42/app`. PM2 startet `humansonly-v2` mit der separat installierten Node.js 22.23.4 auf `127.0.0.1:3218`; der System-Node bleibt unverändert. Die drei öffentlichen Build-Werte stehen in `.env.production` dieses Releases. Beide Nginx-Domains leiten auf diesen Prozess und dessen Next-Static-Verzeichnis. Die PM2-Prozessliste ist gespeichert.
+
+Rückkehr zum bisherigen Stand: Die vorherige Nginx-Konfiguration liegt unter `/var/www/humansonly-v2/backups/nginx-humansonly.before-v2.conf`. Der bisherige PM2-Prozess `humansonly` und `/var/www/humansonly` bleiben für eine Rückkehr erhalten. Vor Wiederherstellung den aktuellen Konfigurationsstand prüfen, die Sicherung nach `/etc/nginx/sites-available/humansonly` kopieren, `nginx -t` erfolgreich ausführen und erst dann Nginx neu laden. Dies stellt V1 bereit; V2-Daten bleiben in ihrem separaten Supabase-Projekt erhalten.
+
+Prüfnachweise und verbleibende Geräte-/Mail-Abnahme: [VALIDATION.md](VALIDATION.md).
