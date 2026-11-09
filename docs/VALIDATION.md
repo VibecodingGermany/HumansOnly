@@ -1,5 +1,12 @@
 # Validierung — Humans Only 2.0
 
+## Warteliste live (2026-11-09)
+
+- Migration am gehosteten Projekt angewendet; Rechteprüfung: `anon` darf nur `join_waitlist` ausführen, weder Tabelle lesen noch freigeben; `private.admins` für Clients gesperrt; ein Admin (Gastgeber). Supabase-Security-Advisor meldet nur die bewusst öffentlichen bzw. für angemeldete Personen gedachten `SECURITY DEFINER`-RPCs (wie bei den bestehenden RPCs).
+- Öffentliche REST-API als `anon`: Eintragen 204 (doppelt idempotent), ungültige Mail `INVALID_EMAIL`, Lesen der Tabelle und Freigabe 401/42501. Der Testeintrag wurde anschließend gelöscht; die Warteliste ist leer.
+- Beide Domains: `/`, `/warteliste`, `/admin`, `/invite`, `/tickets` HTTP 200, Static-Assets 200. Neuer PM2-Prozess ohne Neustarts. `/admin` mit echter Gastgeber-Sitzung in Chrome erreichbar, keine Konsolenfehler.
+- Noch nicht nachgewiesen: automatischer Mailversand (SMTP-Werte noch nicht gesetzt) und eine echte Freigabe mit Ticket-Einlösung.
+
 ## Warteliste (Branch `feat/waitlist`, 2026-11-09, lokal)
 
 - SQL-Vertragstest `python3 supabase/tests/contract.py` auf isoliertem PostgreSQL: 74/74 bestanden, davon 23 neue Wartelisten-Prüfungen (anonymes Eintragen, case-insensitive Idempotenz, Validierung, keine anonymen/Nicht-Admin-Lesezugriffe, keine Direktwrites, Freigabe ohne Budgetverbrauch, wiederholte Freigabe, Ablehnen/Löschen, Admin-Backfill aus bestehendem Owner).
