@@ -21,4 +21,14 @@ export interface ClubhouseRepository {
   hasSession(): Promise<boolean>;
   signOut(): Promise<void>;
   subscribe(onChange: () => void): () => void;
+  /** Öffentlich: gleiche Antwort für neue und bereits bekannte Adressen. */
+  joinWaitlist(name: string, email: string): Promise<void>;
+  /** Admin: stellt ein Goldenes Ticket aus (ohne eigenes Budget) und gibt es zurück. */
+  approveWaitlist(entryId: string): Promise<Ticket>;
+  /** Admin: ist automatischer Mailversand auf dem Server eingerichtet? */
+  mailStatus(): Promise<{ enabled: boolean; simulated: boolean }>;
+  /** Admin: freigeben (falls nötig) und Einladungsmail über den Server verschicken. */
+  sendWaitlistInvite(entryId: string): Promise<void>;
+  rejectWaitlist(entryId: string): Promise<void>;
+  deleteWaitlist(entryId: string): Promise<void>;
 }

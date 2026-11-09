@@ -14,6 +14,7 @@ import {
   X,
   Zap,
   RotateCcw,
+  ShieldCheck,
 } from "lucide-react";
 import { useClub } from "./provider";
 import { config } from "@/lib/config";
@@ -54,11 +55,16 @@ export function Shell({ children }: { children: React.ReactNode }) {
     } catch {}
   }
   const profile = me ? `/u/${me.username}` : "/invite";
-  const entry = path === "/invite" || path === "/onboarding";
+  const pending = state.waitlist.filter((e) => e.status === "pending").length;
+  const entry =
+    path === "/invite" || path === "/onboarding" || path === "/warteliste";
   const links = [
     { href: "/", label: "Das Clubhaus", Icon: Home },
     { href: "/tickets", label: "Goldene Tickets", Icon: Ticket },
     { href: profile, label: "Mein Profil", Icon: UserRound },
+    ...(state.isAdmin
+      ? [{ href: "/admin", label: "Warteliste", Icon: ShieldCheck }]
+      : []),
   ];
   async function signOut() {
     try {
@@ -104,6 +110,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
               {label}
               {label === "Goldene Tickets" && (
                 <span className="nav-count">{me?.invites_left ?? 0}</span>
+              )}
+              {href === "/admin" && pending > 0 && (
+                <span className="nav-count">{pending}</span>
               )}
             </Link>
           ))}
@@ -194,6 +203,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </header>
         <div className="mobile-tools">
           <InstallApp />
+          {state.isAdmin && (
+            <Link className="text-button" href="/admin">
+              <ShieldCheck size={13} />
+              Warteliste{pending > 0 ? ` (${pending})` : ""}
+            </Link>
+          )}
           {me && (
             <button className="text-button" onClick={() => void signOut()}>
               <LogOut size={13} />

@@ -56,6 +56,33 @@ export function createDemoSnapshot(): Snapshot {
   return {
     profiles,
     currentUserId: ids[0],
+    isAdmin: true,
+    waitlist: [
+      {
+        id: "50000000-0000-4000-8000-000000000001",
+        name: "Paula Beispiel",
+        email: "paula@example.org",
+        status: "pending",
+        ticket_id: null,
+        created_at: "2026-11-08T09:30:00.000Z",
+        decided_at: null,
+        decided_by: null,
+        invited_at: null,
+        invite_count: 0,
+      },
+      {
+        id: "50000000-0000-4000-8000-000000000002",
+        name: "Ben Muster",
+        email: "ben@example.org",
+        status: "pending",
+        ticket_id: null,
+        created_at: "2026-11-08T18:05:00.000Z",
+        decided_at: null,
+        decided_by: null,
+        invited_at: null,
+        invite_count: 0,
+      },
+    ],
     spaces: [
       {
         id: SPACE_ID,

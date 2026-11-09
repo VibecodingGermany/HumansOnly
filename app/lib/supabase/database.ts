@@ -6,6 +6,7 @@ import type {
   ContentVote,
   Ticket,
   InvitePreview,
+  WaitlistEntry,
 } from "@/lib/model";
 type Table<T> = {
   Row: T;
@@ -22,6 +23,7 @@ export type Database = {
       posts: Table<Post>;
       content_votes: Table<ContentVote>;
       invite_tickets: Table<Ticket>;
+      waitlist_entries: Table<WaitlistEntry>;
     };
     Views: Record<string, never>;
     Functions: {
@@ -52,6 +54,24 @@ export type Database = {
       cast_content_vote: {
         Args: { p_post_id: string; p_vote: string };
         Returns: Post;
+      };
+      is_admin: { Args: Record<string, never>; Returns: boolean };
+      join_waitlist: {
+        Args: { p_name: string; p_email: string };
+        Returns: undefined;
+      };
+      approve_waitlist_entry: { Args: { p_entry_id: string }; Returns: Ticket };
+      reject_waitlist_entry: {
+        Args: { p_entry_id: string };
+        Returns: undefined;
+      };
+      mark_waitlist_invited: {
+        Args: { p_entry_id: string };
+        Returns: WaitlistEntry;
+      };
+      delete_waitlist_entry: {
+        Args: { p_entry_id: string };
+        Returns: undefined;
       };
     };
     Enums: Record<string, never>;

@@ -127,6 +127,12 @@ export function InvitePage() {
             <ArrowRight size={19} />
           </button>
         </form>
+        {!me && (
+          <p className="waitlist-hint">
+            Noch kein Ticket?{" "}
+            <Link href="/warteliste">Setz dich auf die Warteliste →</Link>
+          </p>
+        )}
         <div className="entry-promise">
           <UserRoundCheck size={19} />
           <span>

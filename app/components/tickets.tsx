@@ -33,7 +33,11 @@ export function TicketsPage() {
       </div>
     );
   const space = state.spaces.find((s) => s.slug === "vibecoding-germany");
-  const tickets = state.tickets.filter((t) => t.creator_id === me.id);
+  // Tickets aus Wartelisten-Freigaben laufen über den Admin-Bereich, nicht über das eigene Budget.
+  const waitlistTickets = new Set(state.waitlist.map((e) => e.ticket_id));
+  const tickets = state.tickets.filter(
+    (t) => t.creator_id === me.id && !waitlistTickets.has(t.id),
+  );
   const canIssue =
     space &&
     state.memberships.some(

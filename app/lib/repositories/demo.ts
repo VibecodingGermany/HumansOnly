@@ -1,5 +1,10 @@
 import { createDemoSnapshot } from "@/lib/seed";
-import { moderationStatus, validateIdentity, validatePost } from "@/lib/model";
+import {
+  moderationStatus,
+  validateIdentity,
+  validatePost,
+  validateWaitlist,
+} from "@/lib/model";
 import type {
   Bucket,
   OnboardingInput,
@@ -163,6 +168,91 @@ export function addDemoPost(state: Snapshot, input: PostInput) {
     created_at: new Date().toISOString(),
   });
 }
+function demoIsAdmin(state: Snapshot) {
+  return state.spaces.some(
+    (s) => s.owner_id !== null && s.owner_id === state.currentUserId,
+  );
+}
+function requireAdmin(state: Snapshot) {
+  if (!demoIsAdmin(state)) throw new Error("Dafür brauchst du Admin-Rechte.");
+}
+function findEntry(state: Snapshot, entryId: string) {
+  const entry = state.waitlist.find((e) => e.id === entryId);
+  if (!entry) throw new Error("Dieser Eintrag existiert nicht mehr.");
+  return entry;
+}
+export function joinDemoWaitlist(
+  state: Snapshot,
+  name: string,
+  email: string,
+  now = new Date(),
+) {
+  const clean = validateWaitlist(name, email);
+  if (state.waitlist.some((e) => e.email.toLowerCase() === clean.email)) return;
+  state.waitlist.push({
+    id: newId(),
+    name: clean.name,
+    email: clean.email,
+    status: "pending",
+    ticket_id: null,
+    created_at: now.toISOString(),
+    decided_at: null,
+    decided_by: null,
+    invited_at: null,
+    invite_count: 0,
+  });
+}
+export function approveDemoWaitlist(
+  state: Snapshot,
+  entryId: string,
+  now = new Date(),
+) {
+  requireAdmin(state);
+  const entry = findEntry(state, entryId);
+  const existing = state.tickets.find((t) => t.id === entry.ticket_id);
+  if (existing && (existing.redeemed_at || new Date(existing.expires_at) > now))
+    return existing;
+  const space = state.spaces.find((s) => s.slug === "vibecoding-germany");
+  if (!space?.owner_id) throw new Error("Dieser Raum vergibt noch keine Tickets.");
+  const ticket = {
+    id: newId(),
+    code: newId().replaceAll("-", "").toUpperCase(),
+    creator_id: state.currentUserId!,
+    target_space_id: space.id,
+    redeemed_by_id: null,
+    redeemed_at: null,
+    expires_at: new Date(now.getTime() + 30 * 86400000).toISOString(),
+  };
+  state.tickets.push(ticket);
+  entry.status = "approved";
+  entry.ticket_id = ticket.id;
+  entry.decided_at = now.toISOString();
+  entry.decided_by = state.currentUserId;
+  return ticket;
+}
+/** Demo: simuliert den Versand und protokolliert ihn nur lokal. */
+export function inviteDemoWaitlist(state: Snapshot, entryId: string) {
+  const ticket = approveDemoWaitlist(state, entryId);
+  if (ticket.redeemed_at)
+    throw new Error("Das Ticket wurde schon eingelöst. Keine neue Mail nötig.");
+  const entry = findEntry(state, entryId);
+  entry.invited_at = new Date().toISOString();
+  entry.invite_count += 1;
+}
+export function rejectDemoWaitlist(state: Snapshot, entryId: string) {
+  requireAdmin(state);
+  const entry = findEntry(state, entryId);
+  if (entry.status === "approved")
+    throw new Error("Dieser Mensch ist schon freigegeben und hat ein Ticket.");
+  entry.status = "rejected";
+  entry.decided_at = new Date().toISOString();
+  entry.decided_by = state.currentUserId;
+}
+export function deleteDemoWaitlist(state: Snapshot, entryId: string) {
+  requireAdmin(state);
+  findEntry(state, entryId);
+  state.waitlist = state.waitlist.filter((e) => e.id !== entryId);
+}
 export function validateUpload(bucket: Bucket, file: Blob) {
   const type = file.type.split(";")[0];
   const image = ["image/jpeg", "image/png", "image/webp"].includes(type);
@@ -205,6 +295,8 @@ export function createDemoRepository(): ClubhouseRepository {
         !Array.isArray(state.spaces)
       )
         throw new Error();
+      // Ältere Demo-Stände kannten noch keine Warteliste.
+      if (!Array.isArray(state.waitlist)) state.waitlist = [];
       return state;
     } catch {
       throw new Error(
@@ -232,7 +324,9 @@ export function createDemoRepository(): ClubhouseRepository {
   }
   return {
     async load() {
-      return read();
+      const state = read();
+      const isAdmin = demoIsAdmin(state);
+      return { ...state, isAdmin, waitlist: isAdmin ? state.waitlist : [] };
     },
     async inspectInvite(code) {
       const state = read();
@@ -289,6 +383,19 @@ export function createDemoRepository(): ClubhouseRepository {
         state.currentUserId = null;
       });
     },
+    joinWaitlist: (name, email) =>
+      mutate((state) => joinDemoWaitlist(state, name, email)),
+    approveWaitlist: (entryId) =>
+      mutate((state) => approveDemoWaitlist(state, entryId)),
+    async mailStatus() {
+      return { enabled: true, simulated: true };
+    },
+    sendWaitlistInvite: (entryId) =>
+      mutate((state) => inviteDemoWaitlist(state, entryId)),
+    rejectWaitlist: (entryId) =>
+      mutate((state) => rejectDemoWaitlist(state, entryId)),
+    deleteWaitlist: (entryId) =>
+      mutate((state) => deleteDemoWaitlist(state, entryId)),
     subscribe(onChange) {
       const storage = (event: StorageEvent) => {
         if (event.key === DEMO_STORAGE_KEY) onChange();

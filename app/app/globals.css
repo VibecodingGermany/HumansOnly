@@ -3167,3 +3167,215 @@ textarea::placeholder {
 @media (max-width: 760px) {
   .hero-scribble { display: none; }
 }
+/* Warteliste und Admin-Freigabe. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.waitlist-trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+label.consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--ink-muted);
+  margin: 18px 0 4px;
+  cursor: pointer;
+}
+label.consent input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 1px;
+  accent-color: var(--blue);
+}
+.waitlist-hint {
+  font-size: 12px;
+  margin: 16px 0 0;
+  color: var(--ink-muted);
+}
+.waitlist-hint a {
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.waitlist-done p {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink-muted);
+  margin-bottom: 20px;
+  overflow-wrap: anywhere;
+}
+.waitlist-done p strong {
+  color: var(--ink);
+}
+.welcome-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+.admin-page {
+  max-width: 900px;
+}
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 28px 0 18px;
+}
+.admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.admin-filters button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--surface-raised);
+}
+.admin-filters button .nav-count {
+  font-size: 13px;
+  width: 20px;
+  height: 20px;
+  line-height: 17px;
+}
+.admin-filters button.active {
+  background: var(--mango);
+  color: var(--on-mango);
+  border-color: var(--on-mango);
+  box-shadow: 2px 2px 0 var(--on-mango);
+}
+.admin-filters button.active .nav-count {
+  border-color: var(--on-mango);
+}
+.admin-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  flex: 1 1 220px;
+  max-width: 320px;
+}
+.admin-search input:not([type="range"]):not([type="file"]) {
+  padding: 9px 11px;
+  font-size: 13px;
+}
+.admin-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+.admin-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-raised);
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+  box-shadow: 3px 3px 0 var(--line);
+}
+.admin-row.status-rejected {
+  opacity: 0.7;
+  box-shadow: none;
+}
+.admin-person {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 240px;
+}
+.admin-person strong {
+  font-size: 15px;
+}
+.admin-person a {
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+.admin-person small {
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.admin-actions .button {
+  font-size: 12px;
+  padding: 8px 12px;
+}
+.admin-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.admin-empty {
+  padding: 40px 10px;
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 14px;
+  border: 1.5px dashed var(--ink-muted);
+  border-radius: 8px;
+}
+.admin-note {
+  margin-top: 22px;
+}
+@media (max-width: 760px) {
+  .admin-search {
+    max-width: none;
+  }
+  .admin-actions {
+    width: 100%;
+  }
+  .admin-page .wallet-heading > .mascot {
+    display: none;
+  }
+}
+.admin-bulk {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 0 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.admin-bulk .button {
+  font-size: 12px;
+  padding: 8px 12px;
+}

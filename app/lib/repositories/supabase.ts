@@ -1,5 +1,5 @@
 import { browserClient } from "@/lib/supabase/browser";
-import { validateIdentity, validatePost } from "@/lib/model";
+import { validateIdentity, validatePost, validateWaitlist } from "@/lib/model";
 import { newId, validateUpload } from "./demo";
 import type { Bucket, Snapshot } from "@/lib/model";
 import type { ClubhouseRepository } from "./contract";
@@ -15,6 +15,14 @@ const messages: Record<string, string> = {
   SELF_VOTE_FORBIDDEN: "Über eigene Beiträge stimmt deine Nachbarschaft ab.",
   VOICE_REQUIRED: "Bitte nimm eine Vorstellung von 1 bis 15 Sekunden auf.",
   ALREADY_ONBOARDED: "Du bist bereits Mitglied. Willkommen zurück!",
+  INVALID_NAME: "Bitte gib deinen Namen mit höchstens 80 Zeichen ein.",
+  INVALID_EMAIL: "Bitte gib eine gültige E-Mail-Adresse ein.",
+  WAITLIST_BUSY:
+    "Gerade tragen sich sehr viele Menschen ein. Bitte versuche es in ein paar Minuten noch einmal.",
+  ADMIN_REQUIRED: "Dafür brauchst du Admin-Rechte.",
+  WAITLIST_NOT_FOUND: "Dieser Eintrag existiert nicht mehr.",
+  WAITLIST_ALREADY_APPROVED:
+    "Dieser Mensch ist schon freigegeben und hat ein Ticket.",
 };
 function check(error: { message: string; code?: string } | null) {
   if (!error) return;
@@ -69,8 +77,10 @@ export function createSupabaseRepository(): ClubhouseRepository {
           tickets: [],
           votes: [],
           currentUserId: null,
+          waitlist: [],
+          isAdmin: false,
         };
-      const [p, s, m, posts, t, v] = await Promise.all([
+      const [p, s, m, posts, t, v, admin] = await Promise.all([
         client.from("profiles").select("*"),
         client.from("spaces").select("*"),
         client.from("space_members").select("*"),
@@ -81,8 +91,19 @@ export function createSupabaseRepository(): ClubhouseRepository {
           .limit(100),
         client.from("invite_tickets").select("*"),
         client.from("content_votes").select("*"),
+        client.rpc("is_admin"),
       ]);
-      [p, s, m, posts, t, v].forEach((r) => check(r.error));
+      [p, s, m, posts, t, v, admin].forEach((r) => check(r.error));
+      let waitlist: Snapshot["waitlist"] = [];
+      if (admin.data) {
+        const w = await client
+          .from("waitlist_entries")
+          .select("*")
+          .order("created_at", { ascending: true })
+          .limit(1000);
+        check(w.error);
+        waitlist = w.data || [];
+      }
       const [avatarUrl, voiceUrl, postUrl] = await Promise.all([
         signPaths(
           "avatars",
@@ -115,6 +136,8 @@ export function createSupabaseRepository(): ClubhouseRepository {
         tickets: t.data || [],
         votes: v.data || [],
         currentUserId: auth.user.id,
+        waitlist,
+        isAdmin: Boolean(admin.data),
       };
       return snapshot;
     },
@@ -211,6 +234,62 @@ export function createSupabaseRepository(): ClubhouseRepository {
       const { error } = await client.auth.signOut();
       check(error);
       signed.clear();
+    },
+    async joinWaitlist(name, email) {
+      const clean = validateWaitlist(name, email);
+      const { error } = await client.rpc("join_waitlist", {
+        p_name: clean.name,
+        p_email: clean.email,
+      });
+      check(error);
+    },
+    async approveWaitlist(entryId) {
+      const { data, error } = await client.rpc("approve_waitlist_entry", {
+        p_entry_id: entryId,
+      });
+      check(error);
+      return data!;
+    },
+    async mailStatus() {
+      try {
+        const res = await fetch("/api/admin/waitlist/invite", {
+          cache: "no-store",
+        });
+        const body = (await res.json()) as { enabled?: boolean };
+        return { enabled: Boolean(res.ok && body.enabled), simulated: false };
+      } catch {
+        return { enabled: false, simulated: false };
+      }
+    },
+    async sendWaitlistInvite(entryId) {
+      const res = await fetch("/api/admin/waitlist/invite", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-humans-only": "admin",
+        },
+        body: JSON.stringify({ entryId }),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        throw new Error(
+          body.error || "Die Einladung konnte nicht verschickt werden.",
+        );
+      }
+    },
+    async rejectWaitlist(entryId) {
+      const { error } = await client.rpc("reject_waitlist_entry", {
+        p_entry_id: entryId,
+      });
+      check(error);
+    },
+    async deleteWaitlist(entryId) {
+      const { error } = await client.rpc("delete_waitlist_entry", {
+        p_entry_id: entryId,
+      });
+      check(error);
     },
     subscribe(onChange) {
       let scheduled: ReturnType<typeof setTimeout> | undefined;

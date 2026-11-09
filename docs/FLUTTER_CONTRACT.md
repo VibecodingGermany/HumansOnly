@@ -106,6 +106,21 @@ Status-Reihenfolge ist deterministisch:
 
 Stabile Fehlermeldungen: `AUTH_REQUIRED`, `PROFILE_REQUIRED`, `INVALID_TICKET`, `ALREADY_ONBOARDED`, `INVITES_REVOKED`, `NO_INVITES_LEFT`, `SPACE_FORBIDDEN`, `VOICE_REQUIRED`, `INVALID_PARENT`, `INVALID_MEDIA`, `POST_FORBIDDEN`, `SELF_VOTE_FORBIDDEN`, `INVALID_VOTE`. Berechtigungsfehler nutzen überwiegend SQLSTATE `42501`; Eindeutigkeitsfehler `23505`, Constraints `23514`. Fehler lokal übersetzen und Inputs behalten. Fehlerstatus niemals als Erfolg behandeln.
 
+### Warteliste (Migration `0002_waitlist.sql`)
+
+Zusätzliche, rein additive Tabelle `waitlist_entries` (`id`, `name`, `email`, `status` = `pending|approved|rejected`, `ticket_id`, `created_at`, `decided_at`, `decided_by`, `invited_at`, `invite_count`). Die sechs Kern-Tabellen bleiben unverändert. Admins stehen in `private.admins` (kein Client-Zugriff); der Gastgeber von Vibecoding Germany ist erster Admin.
+
+| RPC | Rolle | Verhalten |
+| :--- | :--- | :--- |
+| `join_waitlist(p_name, p_email)` | anon, authenticated | Trägt ein. Gleiche Antwort für neue und bekannte Adressen (E-Mail case-insensitiv eindeutig). Fehler: `INVALID_NAME`, `INVALID_EMAIL`, `WAITLIST_BUSY` (mehr als 60 Einträge in 10 Minuten). |
+| `is_admin()` | authenticated | `true` für Admins. |
+| `approve_waitlist_entry(p_entry_id)` | Admin | Stellt ein Goldenes Ticket für Vibecoding Germany aus (30 Tage, `creator_id` = Admin), ohne `invites_left` zu verbrauchen. Wiederholung liefert dasselbe gültige Ticket, nach Ablauf ein neues. Gibt `invite_tickets` zurück. |
+| `reject_waitlist_entry(p_entry_id)` | Admin | Nur für nicht freigegebene Einträge (`WAITLIST_ALREADY_APPROVED`). |
+| `mark_waitlist_invited(p_entry_id)` | Admin | Protokolliert einen erfolgreichen Mailversand (nur freigegebene Einträge, sonst `WAITLIST_NOT_APPROVED`). Den Versand selbst übernimmt der Web-Server. |
+| `delete_waitlist_entry(p_entry_id)` | Admin | Löscht den Eintrag (z. B. auf Wunsch). Ein bereits ausgestelltes Ticket bleibt gültig. |
+
+`waitlist_entries` ist nur für Admins per `select` lesbar; direkte Schreibzugriffe sind gesperrt. Fehler ohne Admin-Rechte: `ADMIN_REQUIRED`.
+
 ## 4. Lesen, RLS und Realtime
 
 RLS ist auf allen sechs Tabellen aktiv. Anonyme Nutzer sehen keine Clubdaten; nur die schmale Ticketvorschau ist öffentlich. Authentifizierte Nutzer ohne Profil sehen ebenfalls keine Clubdaten. Mitglieder lesen Profile, Raum-Metadaten, die Lobby und ihre eigenen Räume. `space_members` ist nur innerhalb eigener Räume sichtbar. `invite_tickets` sehen nur Aussteller oder eingelöster Gast; `content_votes` nur der eigene Voter. Der Client darf auf den Tabellen ausschließlich lesen, alle fachlichen Änderungen laufen über RPC.
