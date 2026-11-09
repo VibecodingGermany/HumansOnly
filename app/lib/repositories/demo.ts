@@ -1,14 +1,20 @@
-import { createDemoSnapshot } from "@/lib/seed";
+import { createDemoSnapshot, DEMO_EMAIL } from "@/lib/seed";
 import {
+  DEFAULT_NOTIFICATIONS,
   moderationStatus,
+  validateEmailAddress,
   validateIdentity,
   validatePost,
+  validateProfileUpdate,
   validateWaitlist,
 } from "@/lib/model";
 import type {
   Bucket,
+  NotificationSettings,
   OnboardingInput,
   PostInput,
+  Profile,
+  ProfileUpdate,
   Snapshot,
   Vote,
 } from "@/lib/model";
@@ -94,6 +100,12 @@ export function redeemDemoTicket(
     display_name: input.displayName.trim(),
     bio: input.bio,
     avatar_url: null,
+    location: "",
+    pronouns: "",
+    links: [],
+    visibility: "members" as const,
+    show_posts: true,
+    show_trust_tree: true,
     voice_intro_url: input.voiceUrl,
     voice_duration_sec: input.voiceDuration,
     invited_by_id: creator.id,
@@ -168,6 +180,70 @@ export function addDemoPost(state: Snapshot, input: PostInput) {
     created_at: new Date().toISOString(),
   });
 }
+export function updateDemoProfile(state: Snapshot, input: ProfileUpdate) {
+  const user = actor(state);
+  const clean = validateProfileUpdate(input);
+  user.display_name = clean.displayName;
+  user.bio = clean.bio;
+  user.location = clean.location;
+  user.pronouns = clean.pronouns;
+  user.links = clean.links;
+  user.visibility = clean.visibility;
+  user.show_posts = clean.showPosts;
+  user.show_trust_tree = clean.showTrustTree;
+  return user;
+}
+export function setDemoAvatar(state: Snapshot, path: string | null) {
+  const user = actor(state);
+  user.avatar_url = path;
+  return user;
+}
+export function updateDemoNotifications(
+  state: Snapshot,
+  settings: NotificationSettings,
+) {
+  actor(state);
+  state.settings = {
+    notify_replies: Boolean(settings.notify_replies),
+    notify_ticket_redeemed: Boolean(settings.notify_ticket_redeemed),
+    notify_news: Boolean(settings.notify_news),
+  };
+}
+export function changeDemoEmail(state: Snapshot, email: string) {
+  actor(state);
+  state.email = validateEmailAddress(email);
+}
+/** Spiegelt delete_my_account(): Raum-Gastgeber müssen zuerst übergeben; alles Übrige verschwindet kaskadierend. */
+export function deleteDemoAccount(state: Snapshot) {
+  const user = actor(state);
+  if (state.spaces.some((s) => s.owner_id === user.id))
+    throw new Error(
+      "Du bist Gastgeber eines Raums. Übergib ihn zuerst, bevor du dein Konto löschst.",
+    );
+  const doomed = new Set<string>();
+  const collect = (id: string) => {
+    doomed.add(id);
+    state.posts
+      .filter((p) => p.parent_id === id && !doomed.has(p.id))
+      .forEach((p) => collect(p.id));
+  };
+  state.posts
+    .filter((p) => p.author_id === user.id)
+    .forEach((p) => collect(p.id));
+  state.posts = state.posts.filter((p) => !doomed.has(p.id));
+  state.votes = state.votes.filter(
+    (v) => v.voter_id !== user.id && !doomed.has(v.post_id),
+  );
+  state.memberships = state.memberships.filter((m) => m.user_id !== user.id);
+  state.tickets = state.tickets.filter((t) => t.creator_id !== user.id);
+  for (const t of state.tickets)
+    if (t.redeemed_by_id === user.id) t.redeemed_by_id = null;
+  for (const p of state.profiles)
+    if (p.invited_by_id === user.id) p.invited_by_id = null;
+  state.profiles = state.profiles.filter((p) => p.id !== user.id);
+  state.currentUserId = null;
+  state.settings = { ...DEFAULT_NOTIFICATIONS };
+}
 function demoIsAdmin(state: Snapshot) {
   return state.spaces.some(
     (s) => s.owner_id !== null && s.owner_id === state.currentUserId,
@@ -213,7 +289,8 @@ export function approveDemoWaitlist(
   if (existing && (existing.redeemed_at || new Date(existing.expires_at) > now))
     return existing;
   const space = state.spaces.find((s) => s.slug === "vibecoding-germany");
-  if (!space?.owner_id) throw new Error("Dieser Raum vergibt noch keine Tickets.");
+  if (!space?.owner_id)
+    throw new Error("Dieser Raum vergibt noch keine Tickets.");
   const ticket = {
     id: newId(),
     code: newId().replaceAll("-", "").toUpperCase(),
@@ -297,6 +374,23 @@ export function createDemoRepository(): ClubhouseRepository {
         throw new Error();
       // Ältere Demo-Stände kannten noch keine Warteliste.
       if (!Array.isArray(state.waitlist)) state.waitlist = [];
+      // Ältere Demo-Stände kannten weder Profil-Einstellungen noch Konto-Daten.
+      state.settings = { ...DEFAULT_NOTIFICATIONS, ...state.settings };
+      if (typeof state.email === "undefined") state.email = DEMO_EMAIL;
+      state.profiles = state.profiles.map(
+        (p): Profile =>
+          ({
+            ...({
+              location: "",
+              pronouns: "",
+              links: [],
+              visibility: "members",
+              show_posts: true,
+              show_trust_tree: true,
+            } satisfies Partial<Profile>),
+            ...(p as Partial<Profile>),
+          }) as Profile,
+      );
       return state;
     } catch {
       throw new Error(
@@ -368,6 +462,14 @@ export function createDemoRepository(): ClubhouseRepository {
         reader.readAsDataURL(file);
       });
     },
+    updateProfile: (input) =>
+      mutate((state) => void updateDemoProfile(state, input)),
+    setAvatar: (path) => mutate((state) => void setDemoAvatar(state, path)),
+    updateNotifications: (settings) =>
+      mutate((state) => updateDemoNotifications(state, settings)),
+    requestEmailChange: (email) =>
+      mutate((state) => changeDemoEmail(state, email)),
+    deleteAccount: () => mutate((state) => deleteDemoAccount(state)),
     async requestLogin() {
       await mutate((state) => {
         state.currentUserId =

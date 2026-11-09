@@ -11,6 +11,7 @@ import { config } from "@/lib/config";
 import { createDemoSnapshot, SPACE_ID } from "@/lib/seed";
 import { createRepository } from "@/lib/repositories";
 import type { ClubhouseRepository } from "@/lib/repositories/contract";
+import { DEFAULT_NOTIFICATIONS } from "@/lib/model";
 import type { Profile, Snapshot } from "@/lib/model";
 const empty: Snapshot = {
   profiles: [],
@@ -20,6 +21,8 @@ const empty: Snapshot = {
   tickets: [],
   votes: [],
   currentUserId: null,
+  email: null,
+  settings: { ...DEFAULT_NOTIFICATIONS },
   waitlist: [],
   isAdmin: false,
 };

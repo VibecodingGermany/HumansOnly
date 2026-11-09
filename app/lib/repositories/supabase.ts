@@ -1,5 +1,12 @@
 import { browserClient } from "@/lib/supabase/browser";
-import { validateIdentity, validatePost, validateWaitlist } from "@/lib/model";
+import {
+  DEFAULT_NOTIFICATIONS,
+  validateEmailAddress,
+  validateIdentity,
+  validatePost,
+  validateProfileUpdate,
+  validateWaitlist,
+} from "@/lib/model";
 import { newId, validateUpload } from "./demo";
 import type { Bucket, Snapshot } from "@/lib/model";
 import type { ClubhouseRepository } from "./contract";
@@ -21,6 +28,18 @@ const messages: Record<string, string> = {
     "Gerade tragen sich sehr viele Menschen ein. Bitte versuche es in ein paar Minuten noch einmal.",
   ADMIN_REQUIRED: "Dafür brauchst du Admin-Rechte.",
   WAITLIST_NOT_FOUND: "Dieser Eintrag existiert nicht mehr.",
+  INVALID_DISPLAY_NAME: "Bitte gib einen Namen mit höchstens 60 Zeichen ein.",
+  INVALID_BIO: "Deine Bio darf höchstens 300 Zeichen haben.",
+  INVALID_LOCATION: "Dein Ort darf höchstens 60 Zeichen haben.",
+  INVALID_PRONOUNS: "Deine Pronomen dürfen höchstens 30 Zeichen haben.",
+  INVALID_LINKS:
+    "Mindestens ein Link ist ungültig. Erlaubt sind bis zu fünf http- oder https-Adressen.",
+  INVALID_VISIBILITY: "Bitte wähle, wer dein Profil sehen darf.",
+  INVALID_SETTINGS: "Diese Einstellung konnte nicht gespeichert werden.",
+  INVALID_MEDIA:
+    "Dieses Bild gehört nicht zu deinem Konto. Bitte lade es neu hoch.",
+  OWNER_CANNOT_DELETE:
+    "Du bist Gastgeber eines Raums. Übergib ihn zuerst, bevor du dein Konto löschst.",
   WAITLIST_ALREADY_APPROVED:
     "Dieser Mensch ist schon freigegeben und hat ein Ticket.",
 };
@@ -77,10 +96,12 @@ export function createSupabaseRepository(): ClubhouseRepository {
           tickets: [],
           votes: [],
           currentUserId: null,
+          email: null,
+          settings: { ...DEFAULT_NOTIFICATIONS },
           waitlist: [],
           isAdmin: false,
         };
-      const [p, s, m, posts, t, v, admin] = await Promise.all([
+      const [p, s, m, posts, t, v, admin, prefs] = await Promise.all([
         client.from("profiles").select("*"),
         client.from("spaces").select("*"),
         client.from("space_members").select("*"),
@@ -92,8 +113,9 @@ export function createSupabaseRepository(): ClubhouseRepository {
         client.from("invite_tickets").select("*"),
         client.from("content_votes").select("*"),
         client.rpc("is_admin"),
+        client.from("profile_settings").select("*").maybeSingle(),
       ]);
-      [p, s, m, posts, t, v, admin].forEach((r) => check(r.error));
+      [p, s, m, posts, t, v, admin, prefs].forEach((r) => check(r.error));
       let waitlist: Snapshot["waitlist"] = [];
       if (admin.data) {
         const w = await client
@@ -136,6 +158,14 @@ export function createSupabaseRepository(): ClubhouseRepository {
         tickets: t.data || [],
         votes: v.data || [],
         currentUserId: auth.user.id,
+        email: auth.user.email ?? null,
+        settings: prefs.data
+          ? {
+              notify_replies: prefs.data.notify_replies,
+              notify_ticket_redeemed: prefs.data.notify_ticket_redeemed,
+              notify_news: prefs.data.notify_news,
+            }
+          : { ...DEFAULT_NOTIFICATIONS },
         waitlist,
         isAdmin: Boolean(admin.data),
       };
@@ -210,6 +240,49 @@ export function createSupabaseRepository(): ClubhouseRepository {
         .upload(path, file, { contentType: type, upsert: false });
       check(result.error);
       return path;
+    },
+    async updateProfile(input) {
+      const clean = validateProfileUpdate(input);
+      const { error } = await client.rpc("update_profile", {
+        p_display_name: clean.displayName,
+        p_bio: clean.bio,
+        p_location: clean.location,
+        p_pronouns: clean.pronouns,
+        p_links: clean.links,
+        p_visibility: clean.visibility,
+        p_show_posts: clean.showPosts,
+        p_show_trust_tree: clean.showTrustTree,
+      });
+      check(error);
+    },
+    async setAvatar(path) {
+      const { error } = await client.rpc("set_avatar", { p_path: path });
+      check(error);
+    },
+    async updateNotifications(settings) {
+      const { error } = await client.rpc("update_notification_settings", {
+        p_replies: settings.notify_replies,
+        p_ticket_redeemed: settings.notify_ticket_redeemed,
+        p_news: settings.notify_news,
+      });
+      check(error);
+    },
+    async requestEmailChange(email) {
+      const clean = validateEmailAddress(email);
+      const { error } = await client.auth.updateUser(
+        { email: clean },
+        {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/einstellungen`,
+        },
+      );
+      check(error);
+    },
+    async deleteAccount() {
+      const { error } = await client.rpc("delete_my_account");
+      check(error);
+      // Die Sitzung gehört zu einem gelöschten Konto; lokal abmelden ist hier nur Aufräumen.
+      await client.auth.signOut({ scope: "local" });
+      signed.clear();
     },
     async requestLogin(email) {
       const { error } = await client.auth.signInWithOtp({

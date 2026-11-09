@@ -1,5 +1,6 @@
 import type {
   Profile,
+  ProfileLink,
   Space,
   Membership,
   Post,
@@ -7,6 +8,7 @@ import type {
   Ticket,
   InvitePreview,
   WaitlistEntry,
+  NotificationSettings,
 } from "@/lib/model";
 type Table<T> = {
   Row: T;
@@ -24,6 +26,7 @@ export type Database = {
       content_votes: Table<ContentVote>;
       invite_tickets: Table<Ticket>;
       waitlist_entries: Table<WaitlistEntry>;
+      profile_settings: Table<NotificationSettings & { user_id: string }>;
     };
     Views: Record<string, never>;
     Functions: {
@@ -55,6 +58,42 @@ export type Database = {
         Args: { p_post_id: string; p_vote: string };
         Returns: Post;
       };
+      update_profile: {
+        Args: {
+          p_display_name: string;
+          p_bio: string;
+          p_location: string;
+          p_pronouns: string;
+          p_links: ProfileLink[];
+          p_visibility: string;
+          p_show_posts: boolean;
+          p_show_trust_tree: boolean;
+        };
+        Returns: Profile;
+      };
+      set_avatar: { Args: { p_path: string | null }; Returns: Profile };
+      update_notification_settings: {
+        Args: {
+          p_replies: boolean;
+          p_ticket_redeemed: boolean;
+          p_news: boolean;
+        };
+        Returns: NotificationSettings;
+      };
+      get_public_profile: {
+        Args: { p_username: string };
+        Returns: {
+          username: string;
+          display_name: string;
+          bio: string;
+          avatar_path: string | null;
+          location: string;
+          pronouns: string;
+          links: ProfileLink[];
+          member_since: string;
+        } | null;
+      };
+      delete_my_account: { Args: Record<string, never>; Returns: undefined };
       is_admin: { Args: Record<string, never>; Returns: boolean };
       join_waitlist: {
         Args: { p_name: string; p_email: string };

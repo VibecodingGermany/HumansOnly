@@ -15,6 +15,7 @@ import {
   Zap,
   RotateCcw,
   ShieldCheck,
+  Settings,
 } from "lucide-react";
 import { useClub } from "./provider";
 import { config } from "@/lib/config";
@@ -62,6 +63,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
     { href: "/", label: "Das Clubhaus", Icon: Home },
     { href: "/tickets", label: "Goldene Tickets", Icon: Ticket },
     { href: profile, label: "Mein Profil", Icon: UserRound },
+    ...(me
+      ? [{ href: "/einstellungen", label: "Einstellungen", Icon: Settings }]
+      : []),
     ...(state.isAdmin
       ? [{ href: "/admin", label: "Warteliste", Icon: ShieldCheck }]
       : []),
@@ -207,6 +211,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <Link className="text-button" href="/admin">
               <ShieldCheck size={13} />
               Warteliste{pending > 0 ? ` (${pending})` : ""}
+            </Link>
+          )}
+          {me && (
+            <Link className="text-button" href="/einstellungen">
+              <Settings size={13} />
+              Einstellungen
             </Link>
           )}
           {me && (

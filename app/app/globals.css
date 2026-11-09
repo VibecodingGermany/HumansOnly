@@ -3379,3 +3379,269 @@ label.consent input[type="checkbox"] {
   font-size: 12px;
   padding: 8px 12px;
 }
+
+/* Profil-Einstellungen und erweiterte Profilansicht. */
+.profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+.profile-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.profile-links {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  margin: 16px 0 0;
+}
+.profile-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.profile-links a:hover {
+  background: var(--mango);
+  color: var(--on-mango);
+}
+.profile-owner-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 4px;
+}
+.profile-owner-bar .button {
+  min-height: 36px;
+  padding: 6px 14px;
+  font-size: 12px;
+}
+.visibility-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+}
+.settings-layout {
+  max-width: 710px;
+  margin: auto;
+}
+.settings-layout > .eyebrow {
+  display: flex;
+}
+.settings-title {
+  font-size: 54px;
+  margin: 12px 0 24px;
+}
+.settings-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+}
+.settings-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  min-height: 42px;
+  padding: 8px 14px;
+  border: 1.5px solid transparent;
+  border-radius: 5px;
+  font-weight: 750;
+  font-size: 13px;
+}
+.settings-tabs button:hover {
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+}
+.settings-tabs button[data-state="active"] {
+  border-color: var(--line);
+  background: var(--mango);
+  color: var(--on-mango);
+}
+.settings-panel {
+  padding: 8px 0 40px;
+}
+.settings-panel h2 {
+  font-size: 26px;
+  margin: 28px 0 12px;
+}
+.settings-panel fieldset {
+  border: 0;
+  padding: 0;
+  margin: 24px 0 0;
+  min-width: 0;
+}
+.settings-panel legend {
+  padding: 0;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.settings-panel legend small {
+  font-weight: 400;
+  color: var(--ink-muted);
+  margin-left: 6px;
+}
+.settings-save {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 2px solid var(--line);
+}
+.settings-save .helper-text {
+  margin: 0;
+}
+.avatar-editor {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 18px 0 8px;
+}
+.avatar-editor .helper-text {
+  margin: 2px 0 10px;
+}
+.avatar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+.avatar-actions .button {
+  min-height: 40px;
+  padding: 8px 14px;
+  font-size: 13px;
+}
+.link-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) auto;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+label.radio-card,
+label.switch-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0 0 10px;
+  padding: 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface-raised);
+  font-weight: 400;
+  cursor: pointer;
+}
+label.radio-card.checked {
+  background: color-mix(in srgb, var(--mango) 16%, var(--surface-raised));
+  box-shadow: 3px 3px 0 var(--line);
+}
+label.radio-card input[type="radio"],
+label.switch-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin: 2px 0 0;
+  padding: 0;
+  accent-color: var(--blue);
+}
+label.radio-card > svg {
+  flex: none;
+  margin-top: 1px;
+}
+label.radio-card > span,
+label.switch-row > span {
+  float: none;
+  display: grid;
+  gap: 3px;
+  font-size: 14px;
+  color: var(--ink);
+}
+label.radio-card small,
+label.switch-row small {
+  font-size: 12px;
+  color: var(--ink-muted);
+  line-height: 1.55;
+}
+label.switch-row:has(input:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.inline-form {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  margin-bottom: 16px;
+}
+.inline-form input {
+  flex: 1;
+  min-width: 0;
+}
+.account-email {
+  font-size: 14px;
+  margin-bottom: 4px;
+  overflow-wrap: anywhere;
+}
+.danger-zone {
+  margin-top: 36px;
+  padding: 18px;
+  border: 2px solid var(--line);
+  border-left: 6px solid #c1121f;
+  border-radius: 5px;
+}
+.danger-zone h2 {
+  margin-top: 0;
+}
+.button-danger {
+  background: #c1121f;
+  color: #fff;
+  border-color: #c1121f;
+}
+@media (max-width: 640px) {
+  .settings-title {
+    font-size: 40px;
+  }
+  .link-row {
+    grid-template-columns: 1fr auto;
+  }
+  .link-row input:first-child {
+    grid-column: 1 / -1;
+  }
+  .link-row .icon-button {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .avatar-editor {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .inline-form {
+    flex-direction: column;
+  }
+}

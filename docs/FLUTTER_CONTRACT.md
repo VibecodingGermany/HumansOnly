@@ -121,6 +121,20 @@ Zusätzliche, rein additive Tabelle `waitlist_entries` (`id`, `name`, `email`, `
 
 `waitlist_entries` ist nur für Admins per `select` lesbar; direkte Schreibzugriffe sind gesperrt. Fehler ohne Admin-Rechte: `ADMIN_REQUIRED`.
 
+### Profil-Einstellungen (Migration `0003_profile_settings.sql`)
+
+Additiv: `profiles` erhält `location` (≤ 60), `pronouns` (≤ 30), `links` (jsonb-Array, ≤ 5 Einträge `{label, url}`; `url` nur `http(s)://`, ≤ 200 Zeichen), `visibility` (`members` Standard | `public` | `hidden`), `show_posts` und `show_trust_tree` (beide Standard `true`). Neue Tabelle `profile_settings` (`user_id`, `notify_replies` = true, `notify_ticket_redeemed` = true, `notify_news` = false); nur die eigene Zeile ist per `select` lesbar, fehlt sie, gelten die Standardwerte.
+
+| RPC | Rolle | Verhalten |
+| :--- | :--- | :--- |
+| `update_profile(p_display_name, p_bio, p_location, p_pronouns, p_links, p_visibility, p_show_posts, p_show_trust_tree)` | Mitglied | Speichert alle Felder auf einmal (Werte werden getrimmt, Links bereinigt). Fehler: `PROFILE_REQUIRED`, `INVALID_DISPLAY_NAME`, `INVALID_BIO`, `INVALID_LOCATION`, `INVALID_PRONOUNS`, `INVALID_LINKS`, `INVALID_VISIBILITY`. |
+| `set_avatar(p_path)` | Mitglied | Setzt einen zuvor in den Bucket `avatars` hochgeladenen eigenen Pfad (`<uid>/<datei>`); `null` entfernt das Bild. Fehler: `INVALID_MEDIA`. Storage-Objekte bleiben unveränderlich: ein neues Bild ist ein neuer Pfad. |
+| `update_notification_settings(p_replies, p_ticket_redeemed, p_news)` | Mitglied | Upsert der eigenen Zeile. Der Versand der Mitteilungen ist noch nicht umgesetzt. |
+| `get_public_profile(p_username)` | anon, authenticated | Liefert nur bei `visibility = 'public'` ein JSON mit `username`, `display_name`, `bio`, `avatar_path`, `location`, `pronouns`, `links`, `member_since`, sonst `null`. Keine Beiträge, kein Vertrauensbaum, keine Stimme. |
+| `delete_my_account()` | Mitglied | Löscht `auth.users` und damit Profil, Mitgliedschaften, Beiträge samt Antworten, Stimmen und Tickets (ON DELETE CASCADE). Gastgeber eines Raums erhalten `OWNER_CANNOT_DELETE`. Hochgeladene Dateien bleiben bis zur Wartung im Storage. |
+
+Nur `public` wird serverseitig erzwungen: anon darf ausschließlich über `get_public_profile` und per Storage-Policy `clubhouse_public_avatar_read` Avatare öffentlicher Profile lesen (zum Signieren der URL). `members` und `hidden` steuern die Darstellung der Profilseite unter Mitgliedern; Name, Nutzername, Bild und Bio sind für Mitglieder weiterhin per API lesbar. Flutter blendet bei `hidden` Bio, Ort, Pronomen, Links, Stimme, Beiträge und Vertrauensbaum anderer aus. E-Mail-Änderung läuft über `auth.updateUser(email)`.
+
 ## 4. Lesen, RLS und Realtime
 
 RLS ist auf allen sechs Tabellen aktiv. Anonyme Nutzer sehen keine Clubdaten; nur die schmale Ticketvorschau ist öffentlich. Authentifizierte Nutzer ohne Profil sehen ebenfalls keine Clubdaten. Mitglieder lesen Profile, Raum-Metadaten, die Lobby und ihre eigenen Räume. `space_members` ist nur innerhalb eigener Räume sichtbar. `invite_tickets` sehen nur Aussteller oder eingelöster Gast; `content_votes` nur der eigene Voter. Der Client darf auf den Tabellen ausschließlich lesen, alle fachlichen Änderungen laufen über RPC.

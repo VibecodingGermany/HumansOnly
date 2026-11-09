@@ -1,4 +1,6 @@
+import { DEFAULT_NOTIFICATIONS } from "./model";
 import type { Profile, Snapshot } from "./model";
+export const DEMO_EMAIL = "dennis@demo.humans-only.invalid";
 export const DEMO_CODE = "MOIN-VIBECODING";
 export const SPACE_ID = "10000000-0000-4000-8000-000000000001";
 const ids = ["dennis", "mira", "jonas", "aylin", "lea", "tom"].map(
@@ -45,6 +47,12 @@ export function createDemoSnapshot(): Snapshot {
       display_name,
       bio,
       avatar_url: `/demo/avatar-${username}.svg`,
+      location: "",
+      pronouns: "",
+      links: [],
+      visibility: "members" as const,
+      show_posts: true,
+      show_trust_tree: true,
       voice_intro_url: `/demo/intro-${username}.mp3`,
       voice_duration_sec: 12,
       invited_by_id: i === 0 ? null : ids[i < 4 ? 0 : 1],
@@ -56,6 +64,8 @@ export function createDemoSnapshot(): Snapshot {
   return {
     profiles,
     currentUserId: ids[0],
+    email: DEMO_EMAIL,
+    settings: { ...DEFAULT_NOTIFICATIONS },
     isAdmin: true,
     waitlist: [
       {

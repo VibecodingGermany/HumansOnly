@@ -26,6 +26,8 @@ def asuser(uid, query, ok=True, role='authenticated'):
 def scalar(uid,query):
  r=asuser(uid,query)
  return [s for s in r.stdout.strip().splitlines() if s not in ('BEGIN','COMMIT','SET',uid)][-1]
+def scalar_anon(query):
+ return [x for x in asuser('',query,role='anon').stdout.strip().splitlines() if x not in ('BEGIN','COMMIT','SET','')][-1]
 def check(name, cond, detail=''):
  reports.append({'test':name,'pass':bool(cond),'detail':detail})
  print(('PASS ' if cond else 'FAIL ')+name+(' — '+detail if detail else ''),flush=True)
@@ -52,6 +54,7 @@ try:
  create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text references storage.buckets(id),name text not null,unique(bucket_id,name));
  alter table storage.objects enable row level security;
  grant select,insert,update,delete on storage.objects to authenticated;
+ grant select on storage.objects to anon;
  create function storage.foldername(name text) returns text[] language sql immutable as $$ select (string_to_array(name,'/'))[1:cardinality(string_to_array(name,'/'))-1] $$;
  grant execute on function storage.foldername(text) to authenticated;
  create publication supabase_realtime;''')
@@ -168,6 +171,61 @@ try:
  asuser(u(1),"select public.delete_waitlist_entry('"+other+"')")
  check('admin can delete entry',sql("select count(*) from public.waitlist_entries where id='"+other+"'").stdout.strip()=='0')
  deny('member cannot delete entry',u(6),"select public.delete_waitlist_entry('"+entry+"')",'ADMIN_REQUIRED')
+# Profil-Einstellungen (0003)
+ load(root/'supabase/migrations/0003_profile_settings.sql')
+ check('profile defaults are members-only with sections shown',sql("select visibility||','||show_posts||','||show_trust_tree||','||links::text from public.profiles where id='"+u(6)+"'").stdout.strip()=='members,true,true,[]')
+ good="select (public.update_profile('  Voter Six ','Bio','Oldenburg','sie/ihr','[{\"label\":\"Site\",\"url\":\"https://example.org/a\"}]','members',true,false)).display_name"
+ check('member updates own profile',scalar(u(6),good)=='Voter Six')
+ check('profile fields persisted',sql("select location||','||pronouns||','||show_trust_tree||','||jsonb_array_length(links) from public.profiles where id='"+u(6)+"'").stdout.strip()=='Oldenburg,sie/ihr,false,1')
+ def upd(links='[]',name='Voter Six',vis='members'): return "select public.update_profile('"+name+"','','','','"+links+"','"+vis+"',true,true)"
+ deny('uninvited cannot update profile',u(4),upd(),'PROFILE_REQUIRED')
+ deny('javascript links rejected',u(6),upd('[{"label":"x","url":"javascript:alert(1)"}]'),'INVALID_LINKS')
+ deny('links without scheme rejected',u(6),upd('[{"label":"x","url":"example.org"}]'),'INVALID_LINKS')
+ deny('more than five links rejected',u(6),upd('['+','.join(['{"label":"x","url":"https://e.org"}']*6)+']'),'INVALID_LINKS')
+ deny('link without label rejected',u(6),upd('[{"label":" ","url":"https://e.org"}]'),'INVALID_LINKS')
+ deny('blank display name rejected',u(6),upd(name='  '),'INVALID_DISPLAY_NAME')
+ deny('unknown visibility rejected',u(6),upd(vis='everyone'),'INVALID_VISIBILITY')
+ check('rejected updates changed nothing',sql("select display_name from public.profiles where id='"+u(6)+"'").stdout.strip()=='Voter Six')
+ deny('direct profile visibility write denied',u(6),"update public.profiles set visibility='public' where id='"+u(6)+"'",'permission denied')
+ # Avatar
+ deny('foreign avatar path rejected',u(6),"select public.set_avatar('"+u(7)+"/a.webp')",'INVALID_MEDIA')
+ deny('unstaged avatar path rejected',u(6),"select public.set_avatar('"+u(6)+"/missing.webp')",'INVALID_MEDIA')
+ asuser(u(6),"insert into storage.objects(bucket_id,name) values ('avatars','"+u(6)+"/a.webp')")
+ asuser(u(6),"select public.set_avatar('"+u(6)+"/a.webp')")
+ check('own avatar is set',sql("select avatar_url from public.profiles where id='"+u(6)+"'").stdout.strip()==u(6)+'/a.webp')
+ check('member sees another member avatar',scalar(u(7),"select count(*) from storage.objects where bucket_id='avatars'")=='1')
+ check('anonymous cannot see member-only avatar',scalar_anon("select count(*) from storage.objects where bucket_id='avatars'")=='0')
+ # Public profile
+ check('members-only profile is not public',scalar_anon("select coalesce(public.get_public_profile('voter6')::text,'none')")=='none')
+ asuser(u(6),upd('[{"label":"Site","url":"https://example.org/a"}]',vis='public'))
+ pub=json.loads(scalar_anon("select public.get_public_profile(' Voter6 ')"))
+ check('public profile exposes only the whitelisted fields',sorted(pub)==['avatar_path','bio','display_name','links','location','member_since','pronouns','username'])
+ check('public profile carries links',pub['links'][0]['url']=='https://example.org/a')
+ check('anonymous reads public avatar',scalar_anon("select count(*) from storage.objects where bucket_id='avatars'")=='1')
+ check('anonymous still cannot read tables',asuser('', 'select * from public.profiles',False,role='anon').returncode!=0)
+ check('anonymous cannot see non-avatar buckets',scalar_anon("select count(*) from storage.objects where bucket_id<>'avatars'")=='0')
+ asuser(u(6),upd(vis='hidden'))
+ check('hiding closes public profile and avatar again',scalar_anon("select coalesce(public.get_public_profile('voter6')::text,'none')")=='none' and scalar_anon("select count(*) from storage.objects where bucket_id='avatars'")=='0')
+ asuser(u(6),"select public.set_avatar(null)")
+ check('avatar can be removed',sql("select avatar_url is null from public.profiles where id='"+u(6)+"'").stdout.strip()=='t')
+ # Benachrichtigungen
+ check('no settings row until saved',scalar(u(6),'select count(*) from public.profile_settings')=='0')
+ asuser(u(6),"select public.update_notification_settings(false,true,true)")
+ asuser(u(6),"select public.update_notification_settings(false,false,true)")
+ check('notification settings upsert',sql("select notify_replies||','||notify_ticket_redeemed||','||notify_news from public.profile_settings where user_id='"+u(6)+"'").stdout.strip()=='false,false,true')
+ check('settings are private to their owner',scalar(u(7),'select count(*) from public.profile_settings')=='0')
+ deny('uninvited cannot save settings',u(4),"select public.update_notification_settings(true,true,true)",'PROFILE_REQUIRED')
+ deny('direct settings write denied',u(6),"update public.profile_settings set notify_news=false",'permission denied')
+ # Konto löschen
+ r=asuser('',"select public.delete_my_account()",False,role='anon'); check('anonymous cannot call delete_my_account',r.returncode!=0 and 'permission denied' in r.stderr)
+ r=asuser('',"select public.update_profile('x','','','','[]','members',true,true)",False,role='anon'); check('anonymous cannot call update_profile',r.returncode!=0 and 'permission denied' in r.stderr)
+ deny('sessionless request cannot delete account','',"select public.delete_my_account()",'AUTH_REQUIRED')
+ deny('space owner cannot delete account',u(1),"select public.delete_my_account()",'OWNER_CANNOT_DELETE')
+ check('owner account survives refused deletion',sql("select count(*) from auth.users where id='"+u(1)+"'").stdout.strip()=='1')
+ before=sql("select slop_votes_count from public.posts where id='"+post+"'").stdout.strip()
+ asuser(u(9),"select public.delete_my_account()")
+ check('deleted account loses user, profile, membership',sql("select (select count(*) from auth.users where id='"+u(9)+"')+(select count(*) from public.profiles where id='"+u(9)+"')+(select count(*) from public.space_members where user_id='"+u(9)+"')").stdout.strip()=='0')
+ check('deleting an account recounts its votes',before=='2' and sql("select slop_votes_count from public.posts where id='"+post+"'").stdout.strip()=='1')
  r=cmd(['psql','-X','-v','ON_ERROR_STOP=1','-v','owner_id='+u(40),'-v','username=wrongowner','-v','display_name=Wrong Owner','-f',str(root/'supabase/bootstrap-owner.sql')],env=env)
  exists=sql("select count(*) from public.profiles where id='"+u(40)+"'").stdout.strip()
  check('bootstrap refuses a different existing owner without side effects',r.returncode!=0 and exists=='0','exit='+str(r.returncode)+', newly admitted profile='+exists)
