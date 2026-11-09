@@ -9,7 +9,7 @@ Stand 2026-11-07. Dieses Dokument beschreibt die **neue** Anwendung. Die ursprü
 ## Neue Supabase-Instanz
 
 1. Neues Projekt erstellen. Auth, PostgreSQL und Storage sind gemeinsame Infrastruktur für Web/Flutter.
-2. Migration `supabase/migrations/0001_humans_only_v2_core.sql` anwenden, danach `supabase/seed.sql`. Nicht gegen die Legacy-Datenbank ausführen.
+2. Migrationen `supabase/migrations/0001_humans_only_v2_core.sql` und `0002_waitlist.sql` in dieser Reihenfolge anwenden, danach `supabase/seed.sql`. Nicht gegen die Legacy-Datenbank ausführen.
 3. Für den ersten Gastgeber einen echten Auth-Account im Dashboard erstellen bzw. per Login anlegen. Mit administrativer DB-Verbindung `supabase/bootstrap-owner.sql` und den dort genannten `psql -v`-Argumenten ausführen. Seed zuerst; derselbe Owner ist wiederholbar, ein anderer Owner wird zurückgewiesen. Der Scriptaufruf zeigt keine DB-Passwörter im Beispiel.
 4. In Supabase Auth den gewünschten Site URL setzen und exakte Redirect-URLs erlauben, z. B. `https://club.example.org/auth/callback` und für lokale Tests `http://localhost:3000/auth/callback`. Keine beliebigen Redirect-Wildcards nötig.
 5. Für PKCE-Magic-Links das Supabase-Mailtemplate mit `{{ .ConfirmationURL }}` verwenden. Wer alternativ den sichtbaren E-Mail-Code-Einstieg nutzt, ergänzt im Template `{{ .Token }}`. Supabase Mail/SMTP, Versandlimits und Bestätigung am echten Projekt prüfen. Die UI unterstützt einen wiederkehrenden Member-Login ohne neues Ticket. Ausstehende Tickets werden maximal eine Stunde browserlokal vorgemerkt; bei einem anderen Gerät muss der Code erneut eingegeben werden.
@@ -45,6 +45,14 @@ Lokal geprüftes SQL ist nicht dasselbe wie ein gehosteter Integrationstest. Am 
 - Zwei getrennte Clients: Post/Vote und Realtime-Status, fremder Raum und dessen Medien bleiben gesperrt.
 - Safari/iOS und Android: Audioformat, Permission-Abbruch, 15-/60-Sekunden-Stopp, Playback, QR-Link und PWA-Installation.
 - Supabase Auth-Rate-Limits, E-Mail-Zustellung, Backups und vertrauenswürdige Wartung für nicht referenzierte Uploads passend zum Betrieb konfigurieren. Keine falschen Identitäts-/Anti-Bot-Garantien aus Voice-Aufnahmen ableiten.
+
+## Warteliste und Admin-Bereich
+
+`/warteliste` ist öffentlich: Name, E-Mail und Einwilligung. `/admin` zeigt Admins (`private.admins`) offene, freigegebene und abgelehnte Einträge. „Freigeben & einladen“ stellt ein Goldenes Ticket aus und verschickt die Einladung direkt; „Alle offenen einladen“ arbeitet die Liste nacheinander ab. Jeder erfolgreiche Versand wird protokolliert (`invited_at`, `invite_count`).
+
+Der Versand läuft serverseitig über `POST /api/admin/waitlist/invite` und denselben SMTP-Zugang, den Vibecoding Germany und Supabase-Auth nutzen. Die Route handelt mit der Sitzung der angemeldeten Person; Admin-Rechte prüft die Datenbank. Dafür in der `.env.production` des Releases auf dem VPS **ohne** `NEXT_PUBLIC_`-Präfix setzen: `SITE_URL=https://humans-only.de`, `SMTP_HOST`, `SMTP_PORT` (587 STARTTLS oder 465 TLS), `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` (z. B. `Humans Only <noreply@vibecoding-germany.de>`), optional `SMTP_REPLY_TO`. Die Werte werden zur Laufzeit gelesen; nach Änderung den PM2-Prozess neu starten. Zugangsdaten nie ins Repository. Ohne diese Werte fällt der Admin-Bereich auf „Mail schreiben“ (eigenes Mailprogramm) und „Link kopieren“ zurück. Versandlimits des SMTP-Anbieters beachten; bei einem Fehler bricht „Alle einladen“ ab und meldet, wie viele raus sind.
+
+**Reihenfolge am bestehenden Live-Projekt:** zuerst `0002_waitlist.sql` anwenden (macht den vorhandenen Gastgeber automatisch zum Admin), danach die neue Web-Version ausrollen. Die neue Web-Version ruft `is_admin()` beim Laden auf und funktioniert ohne Migration nicht. Weitere Admins nur per vertrauenswürdiger DB-Verbindung: `insert into private.admins(user_id) values('<profil-uuid>');`.
 
 `can_invite=false` für ein Profil entzieht dessen Ausgabe- und Einlöserechte auch für bestehende Tickets. Das setzt nur eine vertrauenswürdige Administration, keine Browser-Komponente. Automatische Sanktionen und ein Admin-UI sind nicht Teil des Durchstichs.
 

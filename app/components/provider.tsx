@@ -20,6 +20,8 @@ const empty: Snapshot = {
   tickets: [],
   votes: [],
   currentUserId: null,
+  waitlist: [],
+  isAdmin: false,
 };
 type ClubContext = {
   activeSpaceId: string | null;

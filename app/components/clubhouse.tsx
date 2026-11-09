@@ -77,10 +77,15 @@ export function Clubhouse() {
           Ein Clubhaus für Menschen mit eigenen Gedanken. Dein Goldenes Ticket
           macht die Tür auf.
         </p>
-        <Link className="button button-mango" href="/invite">
-          Mit Ticket eintreten
-          <ArrowRight size={18} />
-        </Link>
+        <div className="welcome-actions">
+          <Link className="button button-mango" href="/invite">
+            Mit Ticket eintreten
+            <ArrowRight size={18} />
+          </Link>
+          <Link className="button button-ink" href="/warteliste">
+            Auf die Warteliste
+          </Link>
+        </div>
       </section>
     );
   return (

@@ -159,3 +159,43 @@ test("status ordering and username constraints", () => {
     /15 Sekunden/,
   );
 });
+test("waitlist join is case-insensitive idempotent and validates input", async () => {
+  const { joinDemoWaitlist } = await import("../lib/repositories/demo");
+  const s = createDemoSnapshot();
+  const before = s.waitlist.length;
+  joinDemoWaitlist(s, " Erika Muster ", "Erika@Example.org");
+  joinDemoWaitlist(s, "Erika Doppelt", "erika@example.ORG");
+  assert.equal(s.waitlist.length, before + 1);
+  const entry = s.waitlist.at(-1)!;
+  assert.equal(entry.name, "Erika Muster");
+  assert.equal(entry.email, "erika@example.org");
+  assert.equal(entry.status, "pending");
+  assert.throws(() => joinDemoWaitlist(s, "X", "kein-mail"), /E-Mail/);
+  assert.throws(() => joinDemoWaitlist(s, "  ", "a@b.de"), /Namen/);
+});
+test("admin approval issues a ticket without consuming the admin budget", async () => {
+  const { approveDemoWaitlist, rejectDemoWaitlist, deleteDemoWaitlist } =
+    await import("../lib/repositories/demo");
+  const s = createDemoSnapshot();
+  const admin = s.profiles[0];
+  const budget = admin.invites_left;
+  const [first, second] = s.waitlist;
+  const ticket = approveDemoWaitlist(s, first.id);
+  assert.equal(admin.invites_left, budget);
+  assert.equal(first.status, "approved");
+  assert.equal(first.ticket_id, ticket.id);
+  assert.equal(ticket.creator_id, admin.id);
+  assert.equal(ticket.target_space_id, SPACE_ID);
+  assert.equal(approveDemoWaitlist(s, first.id).id, ticket.id);
+  assert.throws(() => rejectDemoWaitlist(s, first.id), /freigegeben/);
+  rejectDemoWaitlist(s, second.id);
+  assert.equal(second.status, "rejected");
+  deleteDemoWaitlist(s, second.id);
+  assert(!s.waitlist.some((e) => e.id === second.id));
+});
+test("non-admins cannot approve waitlist entries", async () => {
+  const { approveDemoWaitlist } = await import("../lib/repositories/demo");
+  const s = createDemoSnapshot();
+  s.currentUserId = s.profiles[1].id;
+  assert.throws(() => approveDemoWaitlist(s, s.waitlist[0].id), /Admin/);
+});

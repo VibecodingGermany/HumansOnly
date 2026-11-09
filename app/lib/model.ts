@@ -65,6 +65,19 @@ export type ContentVote = {
   vote: Vote;
   created_at: string;
 };
+export type WaitlistStatus = "pending" | "approved" | "rejected";
+export type WaitlistEntry = {
+  id: string;
+  name: string;
+  email: string;
+  status: WaitlistStatus;
+  ticket_id: string | null;
+  created_at: string;
+  decided_at: string | null;
+  decided_by: string | null;
+  invited_at: string | null;
+  invite_count: number;
+};
 export type Snapshot = {
   profiles: Profile[];
   spaces: Space[];
@@ -73,6 +86,9 @@ export type Snapshot = {
   tickets: Ticket[];
   votes: ContentVote[];
   currentUserId: string | null;
+  /** Nur für Admins gefüllt; für alle anderen leer. */
+  waitlist: WaitlistEntry[];
+  isAdmin: boolean;
 };
 export type InvitePreview = {
   valid: boolean;
@@ -131,4 +147,13 @@ export function validatePost(input: PostInput) {
       input.audioDuration < 1)
   )
     throw new Error("Sprachnotizen dürfen 1 bis 60 Sekunden dauern.");
+}
+export function validateWaitlist(name: string, email: string) {
+  const cleanName = name.trim();
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanName || cleanName.length > 80)
+    throw new Error("Bitte gib deinen Namen mit höchstens 80 Zeichen ein.");
+  if (cleanEmail.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(cleanEmail))
+    throw new Error("Bitte gib eine gültige E-Mail-Adresse ein.");
+  return { name: cleanName, email: cleanEmail };
 }

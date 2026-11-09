@@ -1,5 +1,13 @@
 # Validierung — Humans Only 2.0
 
+## Warteliste (Branch `feat/waitlist`, 2026-11-09, lokal)
+
+- SQL-Vertragstest `python3 supabase/tests/contract.py` auf isoliertem PostgreSQL: 74/74 bestanden, davon 23 neue Wartelisten-Prüfungen (anonymes Eintragen, case-insensitive Idempotenz, Validierung, keine anonymen/Nicht-Admin-Lesezugriffe, keine Direktwrites, Freigabe ohne Budgetverbrauch, wiederholte Freigabe, Ablehnen/Löschen, Admin-Backfill aus bestehendem Owner).
+- `npm run lint`, `npm run typecheck`, `npm test` (21/21) und `npm run build` grün.
+- Demo-Modus im Browser bei 375 px und Desktop: Eintragen, Admin-Liste, Freigabe, vorausgefüllte Mail, Ticket-Wallet unverändert, Nicht-Admin sieht `/admin` gesperrt und keinen Navigationseintrag. Kein horizontales Scrollen.
+- Mailversand: SQL-Protokollierung (`mark_waitlist_invited`) in den 74 SQL-Prüfungen; Konfigurations-, Escaping- und Demo-Tests (21/21 App-Tests); Versand der echten Mail-Vorlage über nodemailer an einen lokalen SMTP-Testserver angenommen; HTML-Mail visuell geprüft; Admin-UI mit simuliertem Versand inkl. „Alle einladen“ geprüft.
+- Nicht nachgewiesen: Migration, `join_waitlist` und die Versand-Route am gehosteten Supabase-Projekt mit echter Sitzung, echte Zustellung über den Vibecoding-Germany-SMTP (Spam-Einstufung, Limits).
+
 ## Callback-Regression 2026-11-07
 
 Der Benutzer bestätigt den Empfang der Anmeldemail. Supabase protokolliert den erfolgreichen PKCE-Codeaustausch; die anschließende Weiterleitung führt jedoch zu `https://localhost:3218/onboarding`. Auch der Aufruf ohne Code ist auf beiden öffentlichen Domains reproduzierbar betroffen: HTTP 307 mit `Location: https://localhost:3218/invite?auth_error=1`.

@@ -9,13 +9,17 @@ begin
  select * into room from public.spaces where slug='vibecoding-germany' for update;
  if room.id is null then raise exception 'Run seed.sql first'; end if;
  if room.owner_id is not null then
-   if room.owner_id=desired and exists(select 1 from public.space_members where space_id=room.id and user_id=desired and role='owner') then return; end if;
+   if room.owner_id=desired and exists(select 1 from public.space_members where space_id=room.id and user_id=desired and role='owner') then
+     if to_regclass('private.admins') is not null then execute 'insert into private.admins(user_id) values($1) on conflict do nothing' using desired; end if;
+     return;
+   end if;
    raise exception 'Space already has a different owner; no profile was created';
  end if;
  insert into public.profiles(id,username,display_name,bio)
  values(desired,lower(current_setting('ho.bootstrap_username')),current_setting('ho.bootstrap_name'),'Gastgeber von Vibecoding Germany.');
  update public.spaces set owner_id=desired where id=room.id;
  insert into public.space_members(space_id,user_id,role) values(room.id,desired,'owner');
+ if to_regclass('private.admins') is not null then execute 'insert into private.admins(user_id) values($1) on conflict do nothing' using desired; end if;
 end;
 $$;
 commit;
