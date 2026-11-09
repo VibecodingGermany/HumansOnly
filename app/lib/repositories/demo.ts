@@ -1,5 +1,6 @@
 import { createDemoSnapshot, DEMO_EMAIL } from "@/lib/seed";
 import {
+  canDeletePost,
   DEFAULT_NOTIFICATIONS,
   moderationStatus,
   validateEmailAddress,
@@ -177,8 +178,63 @@ export function addDemoPost(state: Snapshot, input: PostInput) {
     slop_status: "clean",
     valuable_votes_count: 0,
     slop_votes_count: 0,
+    likes_count: 0,
     created_at: new Date().toISOString(),
   });
+}
+/** Spiegelt toggle_post_like(): Herz an/aus, nie auf eigene Beiträge. */
+export function toggleDemoLike(state: Snapshot, postId: string) {
+  const user = actor(state);
+  const post = state.posts.find((p) => p.id === postId);
+  if (!post) throw new Error("Beitrag nicht gefunden.");
+  requireSpace(state, post.space_id);
+  if (post.author_id === user.id)
+    throw new Error("Eigene Beiträge kannst du nicht liken.");
+  const before = state.likes.length;
+  state.likes = state.likes.filter(
+    (l) => !(l.post_id === postId && l.user_id === user.id),
+  );
+  const liked = state.likes.length === before;
+  if (liked)
+    state.likes.push({
+      post_id: postId,
+      user_id: user.id,
+      created_at: new Date().toISOString(),
+    });
+  post.likes_count = state.likes.filter((l) => l.post_id === postId).length;
+  return { liked, likes_count: post.likes_count };
+}
+/** Spiegelt delete_post(): entfernt Beitrag samt Antworten, Likes und Stimmen. */
+export function deleteDemoPost(state: Snapshot, postId: string) {
+  actor(state);
+  const post = state.posts.find((p) => p.id === postId);
+  if (!post) throw new Error("Beitrag nicht gefunden.");
+  requireSpace(state, post.space_id);
+  if (!canDeletePost({ ...state, isAdmin: demoIsAdmin(state) }, post))
+    throw new Error("Diesen Beitrag kannst du nicht löschen.");
+  const doomed = new Set<string>();
+  const collect = (id: string) => {
+    doomed.add(id);
+    state.posts
+      .filter((p) => p.parent_id === id && !doomed.has(p.id))
+      .forEach((p) => collect(p.id));
+  };
+  collect(postId);
+  state.posts = state.posts.filter((p) => !doomed.has(p.id));
+  state.votes = state.votes.filter((v) => !doomed.has(v.post_id));
+  state.likes = state.likes.filter((l) => !doomed.has(l.post_id));
+}
+export function setDemoVoiceIntro(
+  state: Snapshot,
+  path: string,
+  duration: number,
+) {
+  const user = actor(state);
+  if (!path || !Number.isFinite(duration) || duration < 1 || duration > 15)
+    throw new Error("Bitte nimm eine Vorstellung von 1 bis 15 Sekunden auf.");
+  user.voice_intro_url = path;
+  user.voice_duration_sec = duration;
+  return user;
 }
 export function updateDemoProfile(state: Snapshot, input: ProfileUpdate) {
   const user = actor(state);
@@ -234,6 +290,11 @@ export function deleteDemoAccount(state: Snapshot) {
   state.votes = state.votes.filter(
     (v) => v.voter_id !== user.id && !doomed.has(v.post_id),
   );
+  state.likes = state.likes.filter(
+    (l) => l.user_id !== user.id && !doomed.has(l.post_id),
+  );
+  for (const post of state.posts)
+    post.likes_count = state.likes.filter((l) => l.post_id === post.id).length;
   state.memberships = state.memberships.filter((m) => m.user_id !== user.id);
   state.tickets = state.tickets.filter((t) => t.creator_id !== user.id);
   for (const t of state.tickets)
@@ -374,6 +435,12 @@ export function createDemoRepository(): ClubhouseRepository {
         throw new Error();
       // Ältere Demo-Stände kannten noch keine Warteliste.
       if (!Array.isArray(state.waitlist)) state.waitlist = [];
+      // Ältere Demo-Stände kannten noch keine Likes.
+      if (!Array.isArray(state.likes)) state.likes = [];
+      state.posts = state.posts.map((p) => ({
+        ...p,
+        likes_count: p.likes_count ?? 0,
+      }));
       // Ältere Demo-Stände kannten weder Profil-Einstellungen noch Konto-Daten.
       state.settings = { ...DEFAULT_NOTIFICATIONS, ...state.settings };
       if (typeof state.email === "undefined") state.email = DEMO_EMAIL;
@@ -452,6 +519,10 @@ export function createDemoRepository(): ClubhouseRepository {
     createPost: (input) => mutate((state) => addDemoPost(state, input)),
     vote: (postId, vote) =>
       mutate((state) => castDemoVote(state, postId, vote)),
+    toggleLike: (postId) => mutate((state) => toggleDemoLike(state, postId)),
+    deletePost: (postId) => mutate((state) => deleteDemoPost(state, postId)),
+    setVoiceIntro: (path, duration) =>
+      mutate((state) => void setDemoVoiceIntro(state, path, duration)),
     async upload(bucket, file) {
       validateUpload(bucket, file);
       return new Promise((resolve, reject) => {

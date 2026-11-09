@@ -134,6 +134,9 @@ export function ProfilePage({
     (p) => p.author_id === person.id && !p.parent_id,
   );
   const mine = person.id === me?.id;
+  const hearts = state.posts
+    .filter((p) => p.author_id === person.id)
+    .reduce((sum, p) => sum + p.likes_count, 0);
   // Zurückhaltende Profile zeigen anderen Mitgliedern nur Name, Nutzername und Bild.
   const restricted = person.visibility === "hidden" && !mine;
   const showTree = !restricted && (person.show_trust_tree || mine);
@@ -157,6 +160,18 @@ export function ProfilePage({
             <span className="mango-dot">.</span>
           </h1>
           <span className="profile-handle">@{person.username}</span>
+          {!restricted && (
+            <p className="profile-stats">
+              <span>
+                <strong>{posts.length}</strong>
+                {posts.length === 1 ? "Beitrag" : "Beiträge"}
+              </span>
+              <span>
+                <strong>{hearts}</strong>
+                {hearts === 1 ? "Herz" : "Herzen"} erhalten
+              </span>
+            </p>
+          )}
           {mine && (
             <div className="profile-owner-bar">
               <span className="visibility-chip">

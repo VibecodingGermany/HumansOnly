@@ -1,5 +1,14 @@
 # Validierung — Humans Only 2.0
 
+## Social-Basics und Profil-Einstellungen (Branch `feat/profile-settings`, 2026-11-09, lokal)
+
+- SQL-Vertragstest `python3 supabase/tests/contract.py` auf isoliertem PostgreSQL 17: 136/136 bestanden, davon 25 neue Prüfungen zu 0004 (Like an/aus, Zählung, parallele Taps konsistent, kein Selbst-Like, Raumgrenzen für Likes und Liker-Liste, keine Direktwrites, Löschen durch Autor/Gastgeber, Kaskade auf Kommentare und Likes, fremde dürfen nicht löschen, Sprachvorstellung nur eigener Pfad und 1–15 s, keine anonymen Aufrufe).
+- `npm run lint`, `npm run typecheck`, `npm test` (46/46, davon 14 neu: Link-Erkennung inkl. Klammern/Satzzeichen, gefährliche Schemata, Erwähnungen, Spotify/YouTube-Erkennung, Open-Graph-Parsing, Sperrliste privater Adressen, Likes, Löschrechte, Kaskaden, Sprachvorstellung) und `npm run build` grün.
+- Link-Vorschau-Server gegen echte Seiten geprüft (Spotify, YouTube, GitHub, heise, vibecoding-germany.de); `localhost`, `127.0.0.1`, `169.254.169.254` sowie DNS-Namen, die auf private Adressen zeigen (`localtest.me`, `127.0.0.1.nip.io`), werden abgewiesen.
+- Demo-Modus im Browser (Desktop und 375 px): klickbare Links und @Erwähnungen, Spotify-Karte mit Player nach Klick, Like inkl. Zusammenfassung „Gefällt dir, …“, Kommentar schreiben und löschen, Einzelseite `/p/<id>`, Profilstatistik, neue Sprachvorstellung in den Einstellungen. Keine Konsolenfehler.
+- Nicht nachgewiesen: Migration 0003/0004 und `/api/link-preview` am gehosteten Supabase-Projekt mit echter Sitzung, Realtime-Auslieferung von `post_likes`, Teilen über das native Share-Sheet auf echten Geräten. Spotify-Redaktions-Playlists liefern kein Coverbild (Spotify-seitig leer); Tracks und Alben schon.
+- Der Feed lädt jetzt 150 Beiträge der obersten Ebene plus deren Kommentare und Likes. Ältere Beiträge sind über `/p/<id>` nur erreichbar, solange sie in diesem Fenster liegen.
+
 ## Warteliste (Branch `feat/waitlist`, 2026-11-09, lokal)
 
 - SQL-Vertragstest `python3 supabase/tests/contract.py` auf isoliertem PostgreSQL: 74/74 bestanden, davon 23 neue Wartelisten-Prüfungen (anonymes Eintragen, case-insensitive Idempotenz, Validierung, keine anonymen/Nicht-Admin-Lesezugriffe, keine Direktwrites, Freigabe ohne Budgetverbrauch, wiederholte Freigabe, Ablehnen/Löschen, Admin-Backfill aus bestehendem Owner).
@@ -140,7 +149,7 @@ Der Rückgabetyp nicht-SETOF-basierter Supabase-RPCs wurde gegen die offiziellen
 - Kein Zugang zu einem konfigurierten echten Supabase-Projekt: tatsächliche E-Mail-Zustellung, PKCE-Callback mit echten Tokens, Storage-HTTP und Realtime-Auslieferung müssen dort vor Veröffentlichung abgenommen werden.
 - Keine physischen iOS-/Android-/macOS-Geräte geprüft; native Flutter-Apps sind hier spezifiziert, nicht implementiert. Physische Mikrofonqualität, native Permission-Dialoge und Homescreen-Installation bleiben Geräteabnahme.
 - Voice ist eine soziale Vorstellung, kein belastbarer Mensch-Nachweis. Dauerangaben untrusted Clients werden nicht anhand des Medieninhalts verifiziert.
-- Feed lädt maximal 100 sichtbare Beiträge; bezahlt zugängliche Räume und automatische Bürgen-Sanktionen sind spätere Phasen.
+- Feed lädt maximal 150 Beiträge der obersten Ebene samt Kommentaren; bezahlt zugängliche Räume und automatische Bürgen-Sanktionen sind spätere Phasen.
 - `hidden` ist Darstellungsunterdrückung innerhalb berechtigter Räume; keine zusätzliche Vertraulichkeitsgrenze.
 - Lokale Demo-Dateien unterliegen Browser-Speicherquoten; sie werden nicht in Live-Supabase importiert.
 

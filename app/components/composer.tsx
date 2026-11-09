@@ -1,9 +1,11 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ImagePlus, Mic, Send, Type, X } from "lucide-react";
 import { Modal } from "./ui";
 import { VoiceRecorder, type Recording } from "./voice-recorder";
 import { useClub } from "./provider";
+import { LinkPreviewCard } from "./link-preview";
+import { firstUrl } from "@/lib/links";
 export function Composer({
   open,
   onOpenChange,
@@ -24,6 +26,12 @@ export function Composer({
   const [recordingBusy, setRecordingBusy] = useState(false);
   const [error, setError] = useState("");
   const file = useRef<HTMLInputElement>(null);
+  // Vorschau erst, wenn kurz nicht mehr getippt wird (nicht bei jedem Tastendruck).
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  useEffect(() => {
+    const timer = setTimeout(() => setPreviewUrl(firstUrl(text)), 700);
+    return () => clearTimeout(timer);
+  }, [text]);
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setBusy(true);
@@ -108,6 +116,11 @@ export function Composer({
           rows={5}
         />
         <div className="character-count">{text.length} / 2.000</div>
+        {previewUrl && !image && (
+          <div className="composer-preview">
+            <LinkPreviewCard url={previewUrl} />
+          </div>
+        )}
         {kind === "image" && (
           <div className="upload-zone">
             <ImagePlus size={28} />

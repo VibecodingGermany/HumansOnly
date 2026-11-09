@@ -17,6 +17,12 @@ export interface ClubhouseRepository {
   createTicket(spaceId: string): Promise<Ticket>;
   createPost(input: PostInput): Promise<void>;
   vote(postId: string, vote: Vote): Promise<void>;
+  /** Herz an/aus. Eigene Beiträge können nicht geliked werden. */
+  toggleLike(postId: string): Promise<{ liked: boolean; likes_count: number }>;
+  /** Eigenen Beitrag/Kommentar löschen (Gastgeber/Moderation/Admin auch fremde). */
+  deletePost(postId: string): Promise<void>;
+  /** Neue Sprachvorstellung (1–15 s) setzen. */
+  setVoiceIntro(path: string, duration: number): Promise<void>;
   upload(bucket: Bucket, file: Blob): Promise<string>;
   /** Eigenes Profil speichern (Name, Bio, Ort, Pronomen, Links, Sichtbarkeit). */
   updateProfile(input: ProfileUpdate): Promise<void>;

@@ -20,6 +20,7 @@ const empty: Snapshot = {
   posts: [],
   tickets: [],
   votes: [],
+  likes: [],
   currentUserId: null,
   email: null,
   settings: { ...DEFAULT_NOTIFICATIONS },

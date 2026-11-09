@@ -10,6 +10,8 @@ import {
 import { newId, validateUpload } from "./demo";
 import type { Bucket, Snapshot } from "@/lib/model";
 import type { ClubhouseRepository } from "./contract";
+/** Beiträge der obersten Ebene, die das Clubhaus auf einmal lädt. */
+const FEED_LIMIT = 150;
 const messages: Record<string, string> = {
   INVALID_TICKET:
     "Dieses Ticket ist ungültig, abgelaufen oder bereits eingelöst.",
@@ -18,8 +20,10 @@ const messages: Record<string, string> = {
   AUTH_REQUIRED: "Bitte melde dich zuerst per E-Mail an.",
   PROFILE_REQUIRED: "Bitte schließe zuerst deine Vorstellung ab.",
   SPACE_FORBIDDEN: "Du bist noch nicht Mitglied in diesem Raum.",
-  POST_FORBIDDEN: "Du kannst diesen Beitrag nicht prüfen.",
+  POST_FORBIDDEN: "Auf diesen Beitrag hast du keinen Zugriff (mehr).",
   SELF_VOTE_FORBIDDEN: "Über eigene Beiträge stimmt deine Nachbarschaft ab.",
+  SELF_LIKE_FORBIDDEN: "Eigene Beiträge kannst du nicht liken.",
+  DELETE_FORBIDDEN: "Diesen Beitrag kannst du nicht löschen.",
   VOICE_REQUIRED: "Bitte nimm eine Vorstellung von 1 bis 15 Sekunden auf.",
   ALREADY_ONBOARDED: "Du bist bereits Mitglied. Willkommen zurück!",
   INVALID_NAME: "Bitte gib deinen Namen mit höchstens 80 Zeichen ein.",
@@ -95,6 +99,7 @@ export function createSupabaseRepository(): ClubhouseRepository {
           posts: [],
           tickets: [],
           votes: [],
+          likes: [],
           currentUserId: null,
           email: null,
           settings: { ...DEFAULT_NOTIFICATIONS },
@@ -108,14 +113,37 @@ export function createSupabaseRepository(): ClubhouseRepository {
         client
           .from("posts")
           .select("*")
+          .is("parent_id", null)
           .order("created_at", { ascending: false })
-          .limit(100),
+          .limit(FEED_LIMIT),
         client.from("invite_tickets").select("*"),
         client.from("content_votes").select("*"),
         client.rpc("is_admin"),
         client.from("profile_settings").select("*").maybeSingle(),
       ]);
       [p, s, m, posts, t, v, admin, prefs].forEach((r) => check(r.error));
+      // Kommentare und Likes gehören zu den geladenen Beiträgen; so verdrängen
+      // lebhafte Gespräche keine Beiträge aus dem Feed.
+      const feedIds = (posts.data || []).map((row) => row.id);
+      const replies = feedIds.length
+        ? await client
+            .from("posts")
+            .select("*")
+            .in("parent_id", feedIds)
+            .order("created_at", { ascending: true })
+            .limit(2000)
+        : { data: [], error: null };
+      check(replies.error);
+      const allPosts = [...(posts.data || []), ...(replies.data || [])];
+      const allIds = allPosts.map((row) => row.id);
+      const likes = allIds.length
+        ? await client
+            .from("post_likes")
+            .select("*")
+            .in("post_id", allIds)
+            .limit(10000)
+        : { data: [], error: null };
+      check(likes.error);
       let waitlist: Snapshot["waitlist"] = [];
       if (admin.data) {
         const w = await client
@@ -137,7 +165,7 @@ export function createSupabaseRepository(): ClubhouseRepository {
         ),
         signPaths(
           "post-media",
-          (posts.data || []).flatMap((row) => [row.image_url, row.audio_url]),
+          allPosts.flatMap((row) => [row.image_url, row.audio_url]),
         ),
       ]);
       const profiles = (p.data || []).map((row) => ({
@@ -145,7 +173,7 @@ export function createSupabaseRepository(): ClubhouseRepository {
         avatar_url: avatarUrl(row.avatar_url),
         voice_intro_url: voiceUrl(row.voice_intro_url),
       }));
-      const resolvedPosts = (posts.data || []).map((row) => ({
+      const resolvedPosts = allPosts.map((row) => ({
         ...row,
         image_url: postUrl(row.image_url),
         audio_url: postUrl(row.audio_url),
@@ -157,6 +185,7 @@ export function createSupabaseRepository(): ClubhouseRepository {
         posts: resolvedPosts,
         tickets: t.data || [],
         votes: v.data || [],
+        likes: likes.data || [],
         currentUserId: auth.user.id,
         email: auth.user.email ?? null,
         settings: prefs.data
@@ -214,6 +243,24 @@ export function createSupabaseRepository(): ClubhouseRepository {
       const { error } = await client.rpc("cast_content_vote", {
         p_post_id: postId,
         p_vote: vote,
+      });
+      check(error);
+    },
+    async toggleLike(postId) {
+      const { data, error } = await client.rpc("toggle_post_like", {
+        p_post_id: postId,
+      });
+      check(error);
+      return data!;
+    },
+    async deletePost(postId) {
+      const { error } = await client.rpc("delete_post", { p_post_id: postId });
+      check(error);
+    },
+    async setVoiceIntro(path, duration) {
+      const { error } = await client.rpc("set_voice_intro", {
+        p_path: path,
+        p_duration_sec: duration,
       });
       check(error);
     },
@@ -375,6 +422,11 @@ export function createSupabaseRepository(): ClubhouseRepository {
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table: "posts" },
+          schedule,
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "post_likes" },
           schedule,
         )
         .subscribe();

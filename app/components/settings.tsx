@@ -9,6 +9,7 @@ import {
   Eye,
   Globe,
   LogOut,
+  Mic,
   Plus,
   ShieldAlert,
   Trash2,
@@ -19,6 +20,8 @@ import {
 } from "lucide-react";
 import { useClub } from "./provider";
 import { Avatar, Loading } from "./ui";
+import { AudioPlayer } from "./audio-player";
+import { VoiceRecorder, type Recording } from "./voice-recorder";
 import { config } from "@/lib/config";
 import { prepareAvatar } from "@/lib/image";
 import { MAX_LINKS } from "@/lib/model";
@@ -172,6 +175,7 @@ function SettingsBody({ me }: { me: Profile }) {
         </Tabs.List>
         <Tabs.Content value="profil" className="settings-panel">
           <AvatarEditor me={me} />
+          <VoiceIntroEditor me={me} />
           <form onSubmit={(e) => void save(e)}>
             <div className="field-grid">
               <div>
@@ -463,6 +467,89 @@ function AvatarEditor({ me }: { me: Profile }) {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Die Stimme ist das Herz von Humans Only: hier lässt sie sich neu aufnehmen. */
+function VoiceIntroEditor({ me }: { me: Profile }) {
+  const { repository, refresh, notify, report } = useClub();
+  const [editing, setEditing] = useState(false);
+  const [recording, setRecording] = useState<Recording | null>(null);
+  const [active, setActive] = useState(false);
+  const [busy, setBusy] = useState(false);
+  async function save() {
+    if (!recording) return;
+    setBusy(true);
+    try {
+      const repo = repository();
+      const path = await repo.upload("voice-intros", recording.blob);
+      await repo.setVoiceIntro(path, recording.duration);
+      await refresh();
+      setEditing(false);
+      setRecording(null);
+      notify("Deine neue Vorstellung ist gespeichert.");
+    } catch (err) {
+      report(err);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="voice-editor">
+      <strong>Deine Stimme</strong>
+      <p className="helper-text">
+        Bis zu 15 Sekunden: So hören die anderen, wer hinter deinem Profil
+        steckt.
+      </p>
+      {me.voice_intro_url && !editing && (
+        <AudioPlayer
+          src={me.voice_intro_url}
+          duration={me.voice_duration_sec || 15}
+          label="Deine aktuelle Vorstellung"
+        />
+      )}
+      {editing ? (
+        <>
+          <VoiceRecorder
+            maxSeconds={15}
+            onChange={setRecording}
+            onRecordingChange={setActive}
+          />
+          <div className="avatar-actions">
+            <button
+              type="button"
+              className="button button-mango"
+              disabled={!recording || active || busy}
+              onClick={() => void save()}
+            >
+              {busy ? "Wird gespeichert …" : "Neue Vorstellung speichern"}
+            </button>
+            <button
+              type="button"
+              className="text-button"
+              disabled={busy || active}
+              onClick={() => {
+                setEditing(false);
+                setRecording(null);
+              }}
+            >
+              Abbrechen
+            </button>
+          </div>
+        </>
+      ) : (
+        <div className="avatar-actions">
+          <button
+            type="button"
+            className="button"
+            onClick={() => setEditing(true)}
+          >
+            <Mic size={17} />
+            {me.voice_intro_url ? "Neu aufnehmen" : "Vorstellung aufnehmen"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

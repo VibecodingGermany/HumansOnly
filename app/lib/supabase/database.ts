@@ -5,6 +5,7 @@ import type {
   Membership,
   Post,
   ContentVote,
+  PostLike,
   Ticket,
   InvitePreview,
   WaitlistEntry,
@@ -24,6 +25,7 @@ export type Database = {
       space_members: Table<Membership>;
       posts: Table<Post>;
       content_votes: Table<ContentVote>;
+      post_likes: Table<PostLike>;
       invite_tickets: Table<Ticket>;
       waitlist_entries: Table<WaitlistEntry>;
       profile_settings: Table<NotificationSettings & { user_id: string }>;
@@ -72,6 +74,15 @@ export type Database = {
         Returns: Profile;
       };
       set_avatar: { Args: { p_path: string | null }; Returns: Profile };
+      toggle_post_like: {
+        Args: { p_post_id: string };
+        Returns: { liked: boolean; likes_count: number };
+      };
+      delete_post: { Args: { p_post_id: string }; Returns: undefined };
+      set_voice_intro: {
+        Args: { p_path: string; p_duration_sec: number };
+        Returns: Profile;
+      };
       update_notification_settings: {
         Args: {
           p_replies: boolean;

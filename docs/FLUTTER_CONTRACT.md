@@ -135,6 +135,18 @@ Additiv: `profiles` erhält `location` (≤ 60), `pronouns` (≤ 30), `links` (j
 
 Nur `public` wird serverseitig erzwungen: anon darf ausschließlich über `get_public_profile` und per Storage-Policy `clubhouse_public_avatar_read` Avatare öffentlicher Profile lesen (zum Signieren der URL). `members` und `hidden` steuern die Darstellung der Profilseite unter Mitgliedern; Name, Nutzername, Bild und Bio sind für Mitglieder weiterhin per API lesbar. Flutter blendet bei `hidden` Bio, Ort, Pronomen, Links, Stimme, Beiträge und Vertrauensbaum anderer aus. E-Mail-Änderung läuft über `auth.updateUser(email)`.
 
+### Social-Basics (Migration `0004_social_basics.sql`)
+
+Additiv: `posts.likes_count` (≥ 0, per Trigger gepflegt) und Tabelle `post_likes` (`post_id`, `user_id`, `created_at`, Primärschlüssel aus beiden). Lesbar für alle, die den Beitrag lesen dürfen (`private.can_read_post`), also auch „wem gefällt das“. Likes sind unabhängig von der Community-Prüfung (`content_votes`) und ändern `slop_status` nicht. Kommentare bleiben Beiträge mit `parent_id` und werden über `create_post` geschrieben. `post_likes` ist Teil von `supabase_realtime`.
+
+| RPC | Rolle | Verhalten |
+| :--- | :--- | :--- |
+| `toggle_post_like(p_post_id)` | Mitglied | Herz an/aus, Zeile des Beitrags gesperrt. Rückgabe `{liked, likes_count}`. Fehler: `PROFILE_REQUIRED`, `POST_FORBIDDEN` (kein Lesezugriff), `SELF_LIKE_FORBIDDEN`. |
+| `delete_post(p_post_id)` | Autor, Gastgeber/Moderation des Raums, Admin | Löscht Beitrag oder Kommentar samt Antworten, Likes und Stimmen (ON DELETE CASCADE). Fehler: `POST_FORBIDDEN`, `DELETE_FORBIDDEN`. Medien bleiben bis zur Wartung im Storage. |
+| `set_voice_intro(p_path, p_duration_sec)` | Mitglied | Neue Sprachvorstellung aus dem Bucket `voice-intros` (eigener Pfad, 1–15 s). Fehler: `VOICE_REQUIRED`. |
+
+Links im Text erkennt der Client (http/https und `www.`), `@name` verlinkt auf `/u/name`, wenn das Profil existiert. Die Web-App holt Link-Vorschauen über `GET /api/link-preview?url=…` (nur mit Sitzung; Server ruft die Seite ab, blockt private Netze). Spotify- und YouTube-Player werden erst nach einem Tipp geladen. Teilen nutzt den Link `/p/<post_id>`; er öffnet das Gespräch nur für Mitglieder mit Lesezugriff.
+
 ## 4. Lesen, RLS und Realtime
 
 RLS ist auf allen sechs Tabellen aktiv. Anonyme Nutzer sehen keine Clubdaten; nur die schmale Ticketvorschau ist öffentlich. Authentifizierte Nutzer ohne Profil sehen ebenfalls keine Clubdaten. Mitglieder lesen Profile, Raum-Metadaten, die Lobby und ihre eigenen Räume. `space_members` ist nur innerhalb eigener Räume sichtbar. `invite_tickets` sehen nur Aussteller oder eingelöster Gast; `content_votes` nur der eigene Voter. Der Client darf auf den Tabellen ausschließlich lesen, alle fachlichen Änderungen laufen über RPC.

@@ -61,6 +61,13 @@ export type Post = {
   slop_status: SlopStatus;
   valuable_votes_count: number;
   slop_votes_count: number;
+  /** Anzahl „Gefällt mir“. Getrennt von der Community-Prüfung. */
+  likes_count: number;
+  created_at: string;
+};
+export type PostLike = {
+  post_id: string;
+  user_id: string;
   created_at: string;
 };
 export type ContentVote = {
@@ -121,6 +128,8 @@ export type Snapshot = {
   posts: Post[];
   tickets: Ticket[];
   votes: ContentVote[];
+  /** Likes zu den geladenen Beiträgen (alle Personen, nicht nur die eigenen). */
+  likes: PostLike[];
   currentUserId: string | null;
   /** E-Mail-Adresse des angemeldeten Kontos. */
   email: string | null;
@@ -273,4 +282,20 @@ export function validateEmailAddress(email: string) {
   if (clean.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(clean))
     throw new Error("Bitte gib eine gültige E-Mail-Adresse ein.");
   return clean;
+}
+
+/** Wer einen Beitrag löschen darf: Autor, Gastgeber/Moderation des Raums, Admin. */
+export function canDeletePost(
+  state: Pick<Snapshot, "currentUserId" | "isAdmin" | "memberships">,
+  post: Post,
+) {
+  const me = state.currentUserId;
+  if (!me) return false;
+  if (post.author_id === me || state.isAdmin) return true;
+  return state.memberships.some(
+    (m) =>
+      m.space_id === post.space_id &&
+      m.user_id === me &&
+      (m.role === "owner" || m.role === "moderator"),
+  );
 }
