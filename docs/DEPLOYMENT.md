@@ -73,3 +73,11 @@ Der vorherige V2-Prozess `humansonly-v2` auf Port 3218 bleibt erhalten. Seine Ng
 Rückkehr zu V1: Die vorherige Nginx-Konfiguration liegt unter `/var/www/humansonly-v2/backups/nginx-humansonly.before-v2.conf`. Der bisherige PM2-Prozess `humansonly` und `/var/www/humansonly` bleiben für eine Rückkehr erhalten. Vor Wiederherstellung den aktuellen Konfigurationsstand prüfen, die Sicherung nach `/etc/nginx/sites-available/humansonly` kopieren, `nginx -t` erfolgreich ausführen und erst dann Nginx neu laden. Dies stellt V1 bereit; V2-Daten bleiben in ihrem separaten Supabase-Projekt erhalten.
 
 Prüfnachweise und verbleibende Geräte-/Mail-Abnahme: [VALIDATION.md](VALIDATION.md).
+
+## Produktiver Stand — 2026-11-09 (Warteliste)
+
+PR #6 (Main-Commit `a585ba106b18c1a9114967fb83124e256371f522`) ist live. Migration `0002_waitlist.sql` wurde am Supabase-Projekt `humans-only-v2` als Migration `waitlist` angewendet; `dennis` ist einziger Admin. Die App liegt unter `/var/www/humansonly-v2/releases/a585ba1/app`, gebaut mit Node.js 22.23.4 und der bisherigen `.env.production`. PM2 startet `humansonly-v2-waitlist` (`ecosystem-waitlist.config.cjs`) auf `127.0.0.1:3221`; Port 3220 war belegt. Beide Nginx-Domains zeigen auf diesen Prozess und dessen Static-Verzeichnis; die PM2-Prozessliste ist gespeichert.
+
+Der automatische Mailversand ist noch **nicht** eingerichtet (`GET /api/admin/waitlist/invite` → `enabled: false`); der Admin-Bereich nutzt bis dahin „Mail schreiben“ und „Link kopieren“. Zum Aktivieren die SMTP-Werte aus dem Abschnitt „Warteliste und Admin-Bereich“ in `releases/a585ba1/app/.env.production` ergänzen und `pm2 restart humansonly-v2-waitlist --update-env` ausführen.
+
+Rückweg: `humansonly-v2-authfix` (Release `6a473be`, Port 3219) läuft weiter. Nginx-Sicherung vor der Umschaltung: `/var/www/humansonly-v2/backups/nginx-humansonly.before-waitlist-a585ba1.conf`. Zurück nach `/etc/nginx/sites-available/humansonly` kopieren, `nginx -t`, dann neu laden. Die alte Version ruft keine Wartelisten-Funktionen auf und läuft mit der migrierten Datenbank weiter.

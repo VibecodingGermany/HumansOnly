@@ -1,6 +1,6 @@
 # Validierung — Humans Only 2.0
 
-## Social-Basics und Profil-Einstellungen (Branch `feat/profile-settings`, 2026-11-09, lokal)
+## Social-Basics und Profil-Einstellungen (Branch `feat/social-basics`, 2026-11-09, lokal)
 
 - SQL-Vertragstest `python3 supabase/tests/contract.py` auf isoliertem PostgreSQL 17: 136/136 bestanden, davon 25 neue Prüfungen zu 0004 (Like an/aus, Zählung, parallele Taps konsistent, kein Selbst-Like, Raumgrenzen für Likes und Liker-Liste, keine Direktwrites, Löschen durch Autor/Gastgeber, Kaskade auf Kommentare und Likes, fremde dürfen nicht löschen, Sprachvorstellung nur eigener Pfad und 1–15 s, keine anonymen Aufrufe).
 - `npm run lint`, `npm run typecheck`, `npm test` (46/46, davon 14 neu: Link-Erkennung inkl. Klammern/Satzzeichen, gefährliche Schemata, Erwähnungen, Spotify/YouTube-Erkennung, Open-Graph-Parsing, Sperrliste privater Adressen, Likes, Löschrechte, Kaskaden, Sprachvorstellung) und `npm run build` grün.
@@ -8,6 +8,13 @@
 - Demo-Modus im Browser (Desktop und 375 px): klickbare Links und @Erwähnungen, Spotify-Karte mit Player nach Klick, Like inkl. Zusammenfassung „Gefällt dir, …“, Kommentar schreiben und löschen, Einzelseite `/p/<id>`, Profilstatistik, neue Sprachvorstellung in den Einstellungen. Keine Konsolenfehler.
 - Nicht nachgewiesen: Migration 0003/0004 und `/api/link-preview` am gehosteten Supabase-Projekt mit echter Sitzung, Realtime-Auslieferung von `post_likes`, Teilen über das native Share-Sheet auf echten Geräten. Spotify-Redaktions-Playlists liefern kein Coverbild (Spotify-seitig leer); Tracks und Alben schon.
 - Der Feed lädt jetzt 150 Beiträge der obersten Ebene plus deren Kommentare und Likes. Ältere Beiträge sind über `/p/<id>` nur erreichbar, solange sie in diesem Fenster liegen.
+
+## Warteliste live (2026-11-09)
+
+- Migration am gehosteten Projekt angewendet; Rechteprüfung: `anon` darf nur `join_waitlist` ausführen, weder Tabelle lesen noch freigeben; `private.admins` für Clients gesperrt; ein Admin (Gastgeber). Supabase-Security-Advisor meldet nur die bewusst öffentlichen bzw. für angemeldete Personen gedachten `SECURITY DEFINER`-RPCs (wie bei den bestehenden RPCs).
+- Öffentliche REST-API als `anon`: Eintragen 204 (doppelt idempotent), ungültige Mail `INVALID_EMAIL`, Lesen der Tabelle und Freigabe 401/42501. Der Testeintrag wurde anschließend gelöscht; die Warteliste ist leer.
+- Beide Domains: `/`, `/warteliste`, `/admin`, `/invite`, `/tickets` HTTP 200, Static-Assets 200. Neuer PM2-Prozess ohne Neustarts. `/admin` mit echter Gastgeber-Sitzung in Chrome erreichbar, keine Konsolenfehler.
+- Noch nicht nachgewiesen: automatischer Mailversand (SMTP-Werte noch nicht gesetzt) und eine echte Freigabe mit Ticket-Einlösung.
 
 ## Warteliste (Branch `feat/waitlist`, 2026-11-09, lokal)
 
