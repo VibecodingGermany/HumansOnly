@@ -1,4 +1,6 @@
-import type { Profile, Snapshot } from "./model";
+import { DEFAULT_NOTIFICATIONS } from "./model";
+import type { Post, PostLike, Profile, Snapshot } from "./model";
+export const DEMO_EMAIL = "dennis@demo.humans-only.invalid";
 export const DEMO_CODE = "MOIN-VIBECODING";
 export const SPACE_ID = "10000000-0000-4000-8000-000000000001";
 const ids = ["dennis", "mira", "jonas", "aylin", "lea", "tom"].map(
@@ -45,6 +47,12 @@ export function createDemoSnapshot(): Snapshot {
       display_name,
       bio,
       avatar_url: `/demo/avatar-${username}.svg`,
+      location: "",
+      pronouns: "",
+      links: [],
+      visibility: "members" as const,
+      show_posts: true,
+      show_trust_tree: true,
       voice_intro_url: `/demo/intro-${username}.mp3`,
       voice_duration_sec: 12,
       invited_by_id: i === 0 ? null : ids[i < 4 ? 0 : 1],
@@ -53,9 +61,11 @@ export function createDemoSnapshot(): Snapshot {
       created_at: joined,
     }),
   );
-  return {
+  const snapshot: Snapshot = {
     profiles,
     currentUserId: ids[0],
+    email: DEMO_EMAIL,
+    settings: { ...DEFAULT_NOTIFICATIONS },
     isAdmin: true,
     waitlist: [
       {
@@ -125,6 +135,7 @@ export function createDemoSnapshot(): Snapshot {
         slop_status: "valuable_verified",
         valuable_votes_count: 3,
         slop_votes_count: 0,
+        likes_count: 0,
         created_at: "2026-11-04T08:40:00.000Z",
       },
       {
@@ -139,6 +150,7 @@ export function createDemoSnapshot(): Snapshot {
         slop_status: "clean",
         valuable_votes_count: 0,
         slop_votes_count: 0,
+        likes_count: 0,
         created_at: "2026-11-04T07:25:00.000Z",
       },
       {
@@ -153,6 +165,7 @@ export function createDemoSnapshot(): Snapshot {
         slop_status: "under_review",
         valuable_votes_count: 0,
         slop_votes_count: 2,
+        likes_count: 0,
         created_at: "2026-11-03T18:10:00.000Z",
       },
       {
@@ -167,6 +180,7 @@ export function createDemoSnapshot(): Snapshot {
         slop_status: "valuable_verified",
         valuable_votes_count: 2,
         slop_votes_count: 0,
+        likes_count: 0,
         created_at: "2026-11-04T08:00:00.000Z",
       },
       {
@@ -181,7 +195,38 @@ export function createDemoSnapshot(): Snapshot {
         slop_status: "clean",
         valuable_votes_count: 0,
         slop_votes_count: 0,
+        likes_count: 0,
         created_at: "2026-11-03T16:00:00.000Z",
+      },
+      {
+        id: "30000000-0000-4000-8000-000000000006",
+        author_id: ids[4],
+        space_id: null,
+        text: "Mein Soundtrack für konzentriertes Bauen heute Abend 🎧\nhttps://open.spotify.com/playlist/37i9dQZF1DX8NTLI2TtZa6\n\n@mira, du hattest nach Lo-Fi gefragt!",
+        image_url: null,
+        audio_url: null,
+        audio_duration_sec: null,
+        parent_id: null,
+        slop_status: "clean",
+        valuable_votes_count: 0,
+        slop_votes_count: 0,
+        likes_count: 0,
+        created_at: "2026-11-04T09:10:00.000Z",
+      },
+      {
+        id: "30000000-0000-4000-8000-000000000007",
+        author_id: ids[1],
+        space_id: null,
+        text: "Perfekt, danke! Läuft schon. Mehr davon unter www.vibecoding-germany.de 🙌",
+        image_url: null,
+        audio_url: null,
+        audio_duration_sec: null,
+        parent_id: "30000000-0000-4000-8000-000000000006",
+        slop_status: "clean",
+        valuable_votes_count: 0,
+        slop_votes_count: 0,
+        likes_count: 0,
+        created_at: "2026-11-04T09:30:00.000Z",
       },
     ],
     tickets: [
@@ -218,5 +263,26 @@ export function createDemoSnapshot(): Snapshot {
         created_at: joined,
       })),
     ],
+    likes: [],
   };
+  // Ein paar Herzen, damit die Demo nicht leer wirkt. Nie auf eigene Beiträge.
+  const hearts: [string, number[]][] = [
+    ["30000000-0000-4000-8000-000000000001", [0, 2, 3, 4]],
+    ["30000000-0000-4000-8000-000000000002", [1, 3]],
+    ["30000000-0000-4000-8000-000000000004", [1, 2, 3, 4, 5]],
+    ["30000000-0000-4000-8000-000000000006", [1, 2]],
+    ["30000000-0000-4000-8000-000000000007", [4]],
+  ];
+  snapshot.likes = hearts.flatMap(([post_id, who]) =>
+    who.map((i): PostLike => ({
+      post_id,
+      user_id: ids[i],
+      created_at: joined,
+    })),
+  );
+  snapshot.posts = snapshot.posts.map((post): Post => ({
+    ...post,
+    likes_count: snapshot.likes.filter((l) => l.post_id === post.id).length,
+  }));
+  return snapshot;
 }

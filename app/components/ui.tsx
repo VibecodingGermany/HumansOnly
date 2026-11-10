@@ -27,7 +27,7 @@ export function Avatar({
   profile,
   size = "normal",
 }: {
-  profile: Profile;
+  profile: Pick<Profile, "username" | "display_name" | "avatar_url">;
   size?: "small" | "normal" | "large";
 }) {
   return (

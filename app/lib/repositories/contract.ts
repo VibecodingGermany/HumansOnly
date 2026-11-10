@@ -1,9 +1,11 @@
 import type {
   Bucket,
   InvitePreview,
+  NotificationSettings,
   OnboardingInput,
   PostInput,
   Profile,
+  ProfileUpdate,
   Snapshot,
   Ticket,
   Vote,
@@ -15,7 +17,22 @@ export interface ClubhouseRepository {
   createTicket(spaceId: string): Promise<Ticket>;
   createPost(input: PostInput): Promise<void>;
   vote(postId: string, vote: Vote): Promise<void>;
+  /** Herz an/aus. Eigene Beiträge können nicht geliked werden. */
+  toggleLike(postId: string): Promise<{ liked: boolean; likes_count: number }>;
+  /** Eigenen Beitrag/Kommentar löschen (Gastgeber/Moderation/Admin auch fremde). */
+  deletePost(postId: string): Promise<void>;
+  /** Neue Sprachvorstellung (1–15 s) setzen. */
+  setVoiceIntro(path: string, duration: number): Promise<void>;
   upload(bucket: Bucket, file: Blob): Promise<string>;
+  /** Eigenes Profil speichern (Name, Bio, Ort, Pronomen, Links, Sichtbarkeit). */
+  updateProfile(input: ProfileUpdate): Promise<void>;
+  /** Hochgeladenes Bild als Profilbild setzen; null entfernt es. */
+  setAvatar(path: string | null): Promise<void>;
+  updateNotifications(settings: NotificationSettings): Promise<void>;
+  /** Löst die Bestätigungs-Mail für die neue Adresse aus. */
+  requestEmailChange(email: string): Promise<void>;
+  /** Löscht Konto, Profil, Beiträge und Tickets unwiderruflich. */
+  deleteAccount(): Promise<void>;
   requestLogin(email: string): Promise<void>;
   verifyLogin(email: string, token: string): Promise<void>;
   hasSession(): Promise<boolean>;

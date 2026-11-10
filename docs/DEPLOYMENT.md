@@ -9,7 +9,7 @@ Stand 2026-11-07. Dieses Dokument beschreibt die **neue** Anwendung. Die ursprü
 ## Neue Supabase-Instanz
 
 1. Neues Projekt erstellen. Auth, PostgreSQL und Storage sind gemeinsame Infrastruktur für Web/Flutter.
-2. Migrationen `supabase/migrations/0001_humans_only_v2_core.sql` und `0002_waitlist.sql` in dieser Reihenfolge anwenden, danach `supabase/seed.sql`. Nicht gegen die Legacy-Datenbank ausführen.
+2. Migrationen `supabase/migrations/0001_humans_only_v2_core.sql`, `0002_waitlist.sql`, `0003_profile_settings.sql` und `0004_social_basics.sql` in dieser Reihenfolge anwenden, danach `supabase/seed.sql`. Nicht gegen die Legacy-Datenbank ausführen.
 3. Für den ersten Gastgeber einen echten Auth-Account im Dashboard erstellen bzw. per Login anlegen. Mit administrativer DB-Verbindung `supabase/bootstrap-owner.sql` und den dort genannten `psql -v`-Argumenten ausführen. Seed zuerst; derselbe Owner ist wiederholbar, ein anderer Owner wird zurückgewiesen. Der Scriptaufruf zeigt keine DB-Passwörter im Beispiel.
 4. In Supabase Auth den gewünschten Site URL setzen und exakte Redirect-URLs erlauben, z. B. `https://club.example.org/auth/callback` und für lokale Tests `http://localhost:3000/auth/callback`. Keine beliebigen Redirect-Wildcards nötig.
 5. Für PKCE-Magic-Links das Supabase-Mailtemplate mit `{{ .ConfirmationURL }}` verwenden. Wer alternativ den sichtbaren E-Mail-Code-Einstieg nutzt, ergänzt im Template `{{ .Token }}`. Supabase Mail/SMTP, Versandlimits und Bestätigung am echten Projekt prüfen. Die UI unterstützt einen wiederkehrenden Member-Login ohne neues Ticket. Ausstehende Tickets werden maximal eine Stunde browserlokal vorgemerkt; bei einem anderen Gerät muss der Code erneut eingegeben werden.
@@ -55,6 +55,10 @@ Der Versand läuft serverseitig über `POST /api/admin/waitlist/invite` und dens
 **Reihenfolge am bestehenden Live-Projekt:** zuerst `0002_waitlist.sql` anwenden (macht den vorhandenen Gastgeber automatisch zum Admin), danach die neue Web-Version ausrollen. Die neue Web-Version ruft `is_admin()` beim Laden auf und funktioniert ohne Migration nicht. Weitere Admins nur per vertrauenswürdiger DB-Verbindung: `insert into private.admins(user_id) values('<profil-uuid>');`.
 
 `can_invite=false` für ein Profil entzieht dessen Ausgabe- und Einlöserechte auch für bestehende Tickets. Das setzt nur eine vertrauenswürdige Administration, keine Browser-Komponente. Automatische Sanktionen und ein Admin-UI sind nicht Teil des Durchstichs.
+
+## Profil-Einstellungen und Social-Basics ausrollen
+
+Reihenfolge am bestehenden Live-Projekt: zuerst `0003_profile_settings.sql`, dann `0004_social_basics.sql` anwenden, danach die neue Web-Version bauen und starten. Die Web-Version liest `post_likes` und `likes_count` beim Laden und funktioniert ohne Migration 0004 nicht. Die Link-Vorschau (`/api/link-preview`) ruft fremde Seiten vom Server aus ab: der VPS braucht ausgehendes HTTPS. Neue Umgebungsvariablen sind nicht nötig.
 
 ## Produktiver Stand — 2026-11-07
 
